@@ -238,7 +238,7 @@ func HealthCheck(cfgMgr *config.Manager) http.HandlerFunc {
 		cfg := cfgMgr.Get()
 		status := map[string]any{
 			"status":  "ok",
-			"service": "agent-harness",
+			"service": "aegis",
 		}
 
 		backends := make(map[string]string)

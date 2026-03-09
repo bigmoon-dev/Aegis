@@ -1,0 +1,66 @@
+server:
+  listen: ":18070"
+  read_timeout: 300s
+  write_timeout: 300s
+
+backends:
+  my-tools:
+    url: "http://localhost:8080/mcp"    # Your MCP tool server
+    health_url: "http://localhost:8080/health"
+    timeout: 120s
+
+queue:
+  my-tools:
+    enabled: true
+    delay_min: 60s                      # Min delay between operations
+    delay_max: 600s                     # Max delay between operations
+    max_pending: 50
+    bypass_tools:                       # Skip queue (still rate-limited)
+      - "health_check"
+    global_rate_limits:                 # Across ALL agents
+      risky_operation: { window: 1h, max_count: 10 }
+
+agents:
+  production-agent:
+    display_name: "Production Agent"
+    backends:
+      my-tools:
+        allowed: true
+        tool_denylist:
+          - "dangerous_tool"
+        rate_limits:
+          publish:    { window: 24h, max_count: 1 }
+          like:       { window: 1h,  max_count: 10 }
+          comment:    { window: 1h,  max_count: 3 }
+          search:     { window: 1h,  max_count: 10 }
+        approval_required:
+          - "publish"
+          - "delete"
+
+  dev-agent:
+    display_name: "Dev Agent"
+    backends:
+      my-tools:
+        allowed: true
+        tool_denylist:
+          - "publish"
+          - "delete"
+          - "dangerous_tool"
+        rate_limits:
+          search: { window: 1h, max_count: 5 }
+
+  readonly-agent:
+    display_name: "Read-Only Agent"
+    backends:
+      my-tools:
+        allowed: false                  # Blocked entirely
+
+approval:
+  feishu:
+    webhook_url: ""                     # Your Feishu/Lark webhook URL
+  timeout: 600s
+  callback_base_url: "http://your-server:18070"
+
+audit:
+  db_path: "./data/audit.db"
+  retention_days: 90

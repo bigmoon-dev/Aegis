@@ -7,8 +7,8 @@ Aegis sits between your AI agents and MCP tool servers, enforcing hard constrain
 ```
          AI Agents
     ┌────────┬────────┐
- OpenClaw  Claude   Custom
-  Agent    Code     Agent
+  Agent    Agent    Agent
+    A        B        C
     │        │        │
     └────┬───┴───┬────┘
          ▼       ▼
@@ -61,10 +61,10 @@ make build
 
 # Initialize config from example
 make init-config
-# Edit config/harness.yaml with your settings
+# Edit config/aegis.yaml with your settings
 
 # Run
-./agent-harness config/harness.yaml
+./aegis config/aegis.yaml
 ```
 
 Point your MCP client to `http://localhost:18070/agents/{agent-id}/mcp` instead of the backend directly.
@@ -74,10 +74,10 @@ Point your MCP client to `http://localhost:18070/agents/{agent-id}/mcp` instead 
 ```bash
 # Requires a cross-compiler (e.g. aarch64-linux-gnu-gcc) for CGO/SQLite
 CC=aarch64-linux-gnu-gcc make cross-rpi
-scp agent-harness rpi@your-pi:~/agent-harness/
+scp aegis user@your-server:~/aegis/
 
-# Or build directly on the Pi:
-ssh rpi 'cd ~/agent-harness && make build'
+# Or build directly on the server:
+ssh user@your-server 'cd ~/aegis && make build'
 ```
 
 ## Configuration

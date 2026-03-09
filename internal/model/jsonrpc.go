@@ -52,7 +52,7 @@ type ToolsListResult struct {
 	Tools []ToolInfo `json:"tools"`
 }
 
-// Predefined JSON-RPC error codes for the harness.
+// Predefined JSON-RPC error codes for Aegis.
 const (
 	ErrCodeACLDenied    = -32001
 	ErrCodeRateLimited  = -32002

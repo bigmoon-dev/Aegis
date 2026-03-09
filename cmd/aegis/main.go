@@ -18,13 +18,13 @@ import (
 )
 
 func main() {
-	configPath := "config/harness.yaml"
+	configPath := "config/aegis.yaml"
 	if len(os.Args) > 1 {
 		configPath = os.Args[1]
 	}
 
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
-	log.Printf("agent-harness starting, config=%s", configPath)
+	log.Printf("aegis starting, config=%s", configPath)
 
 	// Load configuration
 	cfgMgr, err := config.NewManager(configPath)
@@ -111,5 +111,5 @@ func main() {
 		log.Printf("shutdown error: %v", err)
 	}
 
-	log.Println("agent-harness stopped")
+	log.Println("aegis stopped")
 }
