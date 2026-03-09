@@ -2,6 +2,8 @@
 
 **A governance proxy for AI agents using the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/).**
 
+English | [中文](README_CN.md)
+
 Aegis sits between your AI agents and MCP tool servers, enforcing hard constraints that agents cannot bypass — rate limiting, access control, human approval workflows, serialized execution queues, and full audit logging.
 
 ```
