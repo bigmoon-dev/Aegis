@@ -43,8 +43,8 @@ func (h *CallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if approved {
-		w.Write([]byte(`<!DOCTYPE html><html><body><h2>✅ 已批准</h2><p>操作将被执行。</p></body></html>`))
+		w.Write([]byte(`<!DOCTYPE html><html><body><h2>Approved</h2><p>The operation will be executed.</p></body></html>`))
 	} else {
-		w.Write([]byte(`<!DOCTYPE html><html><body><h2>❌ 已拒绝</h2><p>操作已被拒绝。</p></body></html>`))
+		w.Write([]byte(`<!DOCTYPE html><html><body><h2>Rejected</h2><p>The operation has been rejected.</p></body></html>`))
 	}
 }

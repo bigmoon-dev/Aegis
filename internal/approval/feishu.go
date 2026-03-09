@@ -43,7 +43,7 @@ func (f *FeishuNotifier) Notify(req *PendingRequest, callbackBaseURL string, tok
 			"header": map[string]any{
 				"title": map[string]any{
 					"tag":     "plain_text",
-					"content": "🔐 Agent 操作审批请求",
+					"content": "🔐 Agent Approval Request",
 				},
 				"template": "orange",
 			},
@@ -62,7 +62,7 @@ func (f *FeishuNotifier) Notify(req *PendingRequest, callbackBaseURL string, tok
 							"is_short": true,
 							"text": map[string]any{
 								"tag":     "lark_md",
-								"content": fmt.Sprintf("**工具:** %s", req.ToolName),
+								"content": fmt.Sprintf("**Tool:** %s", req.ToolName),
 							},
 						},
 					},
@@ -71,7 +71,7 @@ func (f *FeishuNotifier) Notify(req *PendingRequest, callbackBaseURL string, tok
 					"tag": "div",
 					"text": map[string]any{
 						"tag":     "lark_md",
-						"content": fmt.Sprintf("**参数预览:**\n```\n%s\n```", args),
+						"content": fmt.Sprintf("**Arguments:**\n```\n%s\n```", args),
 					},
 				},
 				map[string]any{
@@ -84,7 +84,7 @@ func (f *FeishuNotifier) Notify(req *PendingRequest, callbackBaseURL string, tok
 							"tag": "button",
 							"text": map[string]any{
 								"tag":     "plain_text",
-								"content": "✅ 批准",
+								"content": "Approve",
 							},
 							"type": "primary",
 							"url":  approveURL,
@@ -93,7 +93,7 @@ func (f *FeishuNotifier) Notify(req *PendingRequest, callbackBaseURL string, tok
 							"tag": "button",
 							"text": map[string]any{
 								"tag":     "plain_text",
-								"content": "❌ 拒绝",
+								"content": "Reject",
 							},
 							"type": "danger",
 							"url":  rejectURL,

@@ -47,7 +47,7 @@ Aegis converts soft rules into **programmatic hard constraints** at the protocol
 
 - **Audit Logging** — Every tool call is recorded in SQLite: agent, tool, arguments, ACL/rate-limit/approval verdicts, queue position, execution duration, result. Auto-purge with configurable retention.
 
-- **Tool Description Enhancement** — Constraints are injected into tool descriptions so the agent sees `[限流:1/1d|需审批] Publish post` instead of just `Publish post`. The agent is aware of its limits before deciding what to do.
+- **Tool Description Enhancement** — Constraints are injected into tool descriptions so the agent sees `[Rate:1/1d|ApprovalRequired] Publish post` instead of just `Publish post`. The agent is aware of its limits before deciding what to do.
 
 - **Hot Reload** — Update config without restart via `POST /api/v1/config/reload`.
 

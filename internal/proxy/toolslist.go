@@ -40,15 +40,15 @@ func EnhanceToolsList(cfg *config.Config, agentID, backendID string, result *mod
 		var annotations []string
 
 		if rl, ok := backendCfg.RateLimits[tool.Name]; ok {
-			annotations = append(annotations, fmt.Sprintf("限流:%d/%s", rl.MaxCount, formatDuration(rl.Window)))
+			annotations = append(annotations, fmt.Sprintf("Rate:%d/%s", rl.MaxCount, formatDuration(rl.Window)))
 		}
 
 		if gl, ok := globalLimits[tool.Name]; ok {
-			annotations = append(annotations, fmt.Sprintf("全局限流:%d/%s", gl.MaxCount, formatDuration(gl.Window)))
+			annotations = append(annotations, fmt.Sprintf("GlobalRate:%d/%s", gl.MaxCount, formatDuration(gl.Window)))
 		}
 
 		if slices.Contains(backendCfg.ApprovalRequired, tool.Name) {
-			annotations = append(annotations, "需审批")
+			annotations = append(annotations, "ApprovalRequired")
 		}
 
 		if len(annotations) > 0 {
