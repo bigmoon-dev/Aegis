@@ -5,8 +5,8 @@ import (
 	"log"
 	"slices"
 
-	"github.com/bigmoon-dev/agent-harness/internal/config"
-	"github.com/bigmoon-dev/agent-harness/internal/model"
+	"github.com/bigmoon-dev/aegis/internal/config"
+	"github.com/bigmoon-dev/aegis/internal/model"
 )
 
 // ACL checks whether an agent is allowed to call a specific tool on a backend.

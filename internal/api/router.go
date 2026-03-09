@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bigmoon-dev/agent-harness/internal/approval"
-	"github.com/bigmoon-dev/agent-harness/internal/audit"
-	"github.com/bigmoon-dev/agent-harness/internal/config"
-	"github.com/bigmoon-dev/agent-harness/internal/pipeline"
+	"github.com/bigmoon-dev/aegis/internal/approval"
+	"github.com/bigmoon-dev/aegis/internal/audit"
+	"github.com/bigmoon-dev/aegis/internal/config"
+	"github.com/bigmoon-dev/aegis/internal/pipeline"
 )
 
 // Router handles management REST API requests.

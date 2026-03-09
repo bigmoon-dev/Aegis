@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bigmoon-dev/agent-harness/internal/audit"
-	"github.com/bigmoon-dev/agent-harness/internal/config"
-	"github.com/bigmoon-dev/agent-harness/internal/model"
-	"github.com/bigmoon-dev/agent-harness/internal/pipeline"
+	"github.com/bigmoon-dev/aegis/internal/audit"
+	"github.com/bigmoon-dev/aegis/internal/config"
+	"github.com/bigmoon-dev/aegis/internal/model"
+	"github.com/bigmoon-dev/aegis/internal/pipeline"
 	"github.com/google/uuid"
 )
 

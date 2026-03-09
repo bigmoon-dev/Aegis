@@ -3,7 +3,7 @@ package pipeline
 import (
 	"context"
 
-	"github.com/bigmoon-dev/agent-harness/internal/model"
+	"github.com/bigmoon-dev/aegis/internal/model"
 )
 
 // Stage processes a request and returns a verdict.

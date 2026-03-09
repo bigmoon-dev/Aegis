@@ -6,9 +6,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/bigmoon-dev/agent-harness/internal/audit"
-	"github.com/bigmoon-dev/agent-harness/internal/config"
-	"github.com/bigmoon-dev/agent-harness/internal/model"
+	"github.com/bigmoon-dev/aegis/internal/audit"
+	"github.com/bigmoon-dev/aegis/internal/config"
+	"github.com/bigmoon-dev/aegis/internal/model"
 )
 
 // RateLimiter enforces per-agent per-tool and global per-tool sliding window rate limits.

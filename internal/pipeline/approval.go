@@ -5,9 +5,9 @@ import (
 	"log"
 	"slices"
 
-	"github.com/bigmoon-dev/agent-harness/internal/approval"
-	"github.com/bigmoon-dev/agent-harness/internal/config"
-	"github.com/bigmoon-dev/agent-harness/internal/model"
+	"github.com/bigmoon-dev/aegis/internal/approval"
+	"github.com/bigmoon-dev/aegis/internal/config"
+	"github.com/bigmoon-dev/aegis/internal/model"
 )
 
 // ApprovalGate blocks destructive operations until human approval.

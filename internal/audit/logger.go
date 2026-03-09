@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bigmoon-dev/agent-harness/internal/model"
+	"github.com/bigmoon-dev/aegis/internal/model"
 	_ "github.com/mattn/go-sqlite3"
 )
 

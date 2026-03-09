@@ -1,4 +1,4 @@
-module github.com/bigmoon-dev/agent-harness
+module github.com/bigmoon-dev/aegis
 
 go 1.22
 

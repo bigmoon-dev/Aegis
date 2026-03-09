@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bigmoon-dev/agent-harness/internal/config"
-	"github.com/bigmoon-dev/agent-harness/internal/model"
+	"github.com/bigmoon-dev/aegis/internal/config"
+	"github.com/bigmoon-dev/aegis/internal/model"
 	"github.com/google/uuid"
 )
 

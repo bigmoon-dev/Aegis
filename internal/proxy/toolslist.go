@@ -7,8 +7,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/bigmoon-dev/agent-harness/internal/config"
-	"github.com/bigmoon-dev/agent-harness/internal/model"
+	"github.com/bigmoon-dev/aegis/internal/config"
+	"github.com/bigmoon-dev/aegis/internal/model"
 )
 
 // EnhanceToolsList filters and enhances tools/list responses per agent.

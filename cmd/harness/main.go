@@ -9,12 +9,12 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/bigmoon-dev/agent-harness/internal/api"
-	"github.com/bigmoon-dev/agent-harness/internal/approval"
-	"github.com/bigmoon-dev/agent-harness/internal/audit"
-	"github.com/bigmoon-dev/agent-harness/internal/config"
-	"github.com/bigmoon-dev/agent-harness/internal/pipeline"
-	"github.com/bigmoon-dev/agent-harness/internal/proxy"
+	"github.com/bigmoon-dev/aegis/internal/api"
+	"github.com/bigmoon-dev/aegis/internal/approval"
+	"github.com/bigmoon-dev/aegis/internal/audit"
+	"github.com/bigmoon-dev/aegis/internal/config"
+	"github.com/bigmoon-dev/aegis/internal/pipeline"
+	"github.com/bigmoon-dev/aegis/internal/proxy"
 )
 
 func main() {
