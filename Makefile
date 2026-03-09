@@ -1,7 +1,7 @@
 BINARY := aegis
 CMD := ./cmd/aegis/
 
-.PHONY: build run clean test lint cross-rpi
+.PHONY: build run clean test lint cross-rpi init-config
 
 build:
 	go build -o $(BINARY) $(CMD)

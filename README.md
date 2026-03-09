@@ -91,6 +91,7 @@ server:
 backends:
   my-tools:
     url: "http://localhost:8080/mcp"    # Your MCP tool server
+    health_url: "http://localhost:8080/health"
     timeout: 120s
 
 queue:
@@ -126,7 +127,7 @@ agents:
 
 approval:
   feishu:
-    webhook_url: "https://open.feishu.cn/open-apis/bot/v2/hook/xxx"
+    webhook_url: ""                     # Your Feishu/Lark webhook URL
   timeout: 600s
   callback_base_url: "http://your-server:18070"
 

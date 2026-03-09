@@ -3,6 +3,11 @@ aegis
 
 # Runtime data
 data/
+logs/
+*.pid
+
+# User config (generated from example)
+config/aegis.yaml
 
 # IDE
 .idea/
