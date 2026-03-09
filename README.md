@@ -84,6 +84,10 @@ ssh user@your-server 'cd ~/aegis && make build'
 
 ## Configuration
 
+See the **[Policy Configuration Guide](docs/policy-guide.md)** for detailed documentation on writing policy rules, including field explanations, time formats, policy interactions, and common scenarios.
+
+Basic example:
+
 ```yaml
 server:
   listen: ":18070"

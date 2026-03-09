@@ -84,6 +84,10 @@ ssh user@your-server 'cd ~/aegis && make build'
 
 ## 配置
 
+详细的策略编写文档请参阅 **[策略配置指南](docs/policy-guide_cn.md)**，包含字段说明、时间格式、策略交互关系和常见场景。
+
+基本示例：
+
 ```yaml
 server:
   listen: ":18070"
