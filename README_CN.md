@@ -1,6 +1,6 @@
 # Aegis
 
-**基于 [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) 的 AI Agent 治理代理。**
+**基于 [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) 的 AI Agent 治理代理。在协议层实施频率限制、访问控制、人工审批和审计日志**
 
 [English](README.md) | 中文
 
