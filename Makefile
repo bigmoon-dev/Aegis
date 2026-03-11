@@ -4,7 +4,7 @@ CMD := ./cmd/aegis/
 .PHONY: build run clean test lint cross-rpi init-config
 
 build:
-	go build -o $(BINARY) $(CMD)
+	go build -trimpath -ldflags "-s -w" -o $(BINARY) $(CMD)
 
 run: build
 	./$(BINARY) config/aegis.example.yaml
