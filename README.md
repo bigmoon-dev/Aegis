@@ -1,10 +1,10 @@
-# Aegis
+# Aegis MCP
 
-**A governance proxy for AI agents using the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/).**
+**The MCP governance proxy that turns soft rules into hard constraints.**
 
 English | [中文](README_CN.md)
 
-Aegis sits between your AI agents and MCP tool servers, enforcing hard constraints that agents cannot bypass — rate limiting, access control, human approval workflows, serialized execution queues, and full audit logging.
+Aegis MCP sits between your AI agents and MCP tool servers as a protocol-level proxy, enforcing constraints that agents cannot bypass — rate limiting, access control, human approval workflows, serialized execution queues, and full audit logging. Zero code changes required for any MCP-compatible agent.
 
 ```
          AI Agents
@@ -14,28 +14,30 @@ Aegis sits between your AI agents and MCP tool servers, enforcing hard constrain
     │        │        │
     └────┬───┴───┬────┘
          ▼       ▼
-┌──────────────────────────────┐
-│        Aegis (:18070)        │
-│                              │
-│  Pipeline:                   │
-│  ① ACL → ② Rate Limit       │
-│  → ③ Human Approval          │
-│  → ④ FIFO Queue → ⑤ Forward │
-│  → ⑥ Audit Log              │
-└──────────────┬───────────────┘
-               ▼
-┌──────────────────────────────┐
-│     MCP Tool Server          │
-│     (e.g. social media,      │
-│      database, APIs...)      │
-└──────────────────────────────┘
+┌────────────────────────────────┐
+│       Aegis MCP (:18070)       │
+│                                │
+│  Pipeline:                     │
+│  ① ACL → ② Rate Limit         │
+│  → ③ Human Approval            │
+│  → ④ FIFO Queue → ⑤ Forward   │
+│  → ⑥ Audit Log                │
+└───────────────┬────────────────┘
+                ▼
+┌────────────────────────────────┐
+│       MCP Tool Server          │
+│       (e.g. social media,      │
+│        database, APIs...)      │
+└────────────────────────────────┘
 ```
 
-## Why
+## Why an MCP Proxy?
 
 AI agents are powerful but unreliable rule followers. Prompt-based "soft rules" like "don't post more than once per day" are routinely violated. When agents operate on real accounts — social media, e-commerce, customer service — a single burst of unchecked actions can trigger platform bans, compliance violations, or worse.
 
-Aegis converts soft rules into **programmatic hard constraints** at the protocol level. The agent literally cannot exceed its rate limit or skip the approval step, regardless of what the LLM decides to do.
+Aegis MCP converts soft rules into **programmatic hard constraints** at the MCP protocol level. The agent literally cannot exceed its rate limit or skip the approval step, regardless of what the LLM decides to do.
+
+Unlike SDK-based approaches that require code changes in each agent, Aegis MCP works as a **transparent proxy** — point your agent to Aegis MCP instead of the backend, and governance is enforced automatically. Works with any MCP-compatible agent: Claude Code, OpenClaw, custom agents, and more.
 
 ## Features
 
@@ -174,7 +176,7 @@ POST /api/v1/config/reload             # Hot reload configuration
 ## How It Works
 
 1. Agent sends MCP requests to `http://aegis:18070/agents/{agent-id}/mcp`
-2. Aegis identifies the agent from the URL path
+2. Aegis MCP identifies the agent from the URL path
 3. `tools/list` → fetches from backend, filters denied tools, injects constraint annotations
 4. `tools/call` → runs through the full pipeline (ACL → Rate Limit → Approval → Queue → Forward → Audit)
 5. `initialize`, `ping`, etc. → passed through transparently
@@ -184,7 +186,7 @@ POST /api/v1/config/reload             # Hot reload configuration
 
 | Decision | Rationale |
 |----------|-----------|
-| MCP Proxy (not SDK Server) | Dynamic tool forwarding; no upstream source modification needed |
+| MCP Proxy (not SDK/framework integration) | Dynamic tool forwarding; zero code changes; works with any MCP-compatible agent |
 | SQLite (not Redis) | Minimal dependencies; persistent audit trail; low resource usage |
 | Per-backend queue | All agents sharing one account must serialize globally |
 | HMAC-signed approval callbacks | Prevent unauthorized approval via URL guessing |
@@ -203,3 +205,5 @@ POST /api/v1/config/reload             # Hot reload configuration
 ## Acknowledgements
 
 Built for governing AI agents operating on real platforms, born from hard-won lessons in social media automation risk control.
+
+<!-- GitHub Topics: mcp, mcp-proxy, mcp-gateway, mcp-server, agent-governance, ai-agent, rate-limiting, access-control, audit-logging -->
