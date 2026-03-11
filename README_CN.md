@@ -62,10 +62,10 @@ Aegis MCP 将软规则转化为 **MCP 协议层的程序化硬约束**。无论 
 ### npm（推荐 MCP 用户使用）
 
 ```bash
-npx aegis-mcp config/aegis.yaml
+npx aegis-mcp-proxy config/aegis.yaml
 # 或全局安装：
-npm install -g aegis-mcp
-aegis-mcp config/aegis.yaml
+npm install -g aegis-mcp-proxy
+aegis-mcp-proxy config/aegis.yaml
 ```
 
 ### 预编译二进制

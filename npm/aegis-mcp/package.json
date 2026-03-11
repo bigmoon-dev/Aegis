@@ -1,8 +1,8 @@
 {
-  "name": "aegis-mcp",
+  "name": "aegis-mcp-proxy",
   "version": "0.0.0",
   "description": "Aegis MCP — programmable guardrails proxy for MCP servers",
-  "bin": { "aegis-mcp": "./bin/index.js" },
+  "bin": { "aegis-mcp-proxy": "./bin/index.js" },
   "files": ["bin/"],
   "optionalDependencies": {
     "aegis-mcp-linux-x64": "0.0.0",

@@ -62,10 +62,10 @@ Unlike SDK-based approaches that require code changes in each agent, Aegis MCP w
 ### npm (recommended for MCP users)
 
 ```bash
-npx aegis-mcp config/aegis.yaml
+npx aegis-mcp-proxy config/aegis.yaml
 # Or install globally:
-npm install -g aegis-mcp
-aegis-mcp config/aegis.yaml
+npm install -g aegis-mcp-proxy
+aegis-mcp-proxy config/aegis.yaml
 ```
 
 ### Pre-built binaries
