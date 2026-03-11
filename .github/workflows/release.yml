@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   build:
@@ -75,6 +76,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
+          pattern: aegis_*
           merge-multiple: true
 
       - name: Generate checksums
@@ -87,3 +89,110 @@ jobs:
           files: |
             aegis_*.tar.gz
             checksums.txt
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/bigmoon-dev/aegis
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  npm:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: aegis_*
+          path: artifacts
+
+      - name: Prepare platform packages
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+
+          # Map artifact names to npm package dirs
+          declare -A MAP=(
+            ["aegis_linux_amd64"]="aegis-mcp-linux-x64"
+            ["aegis_linux_arm64"]="aegis-mcp-linux-arm64"
+            ["aegis_darwin_amd64"]="aegis-mcp-darwin-x64"
+            ["aegis_darwin_arm64"]="aegis-mcp-darwin-arm64"
+          )
+
+          for artifact in "${!MAP[@]}"; do
+            pkg="${MAP[$artifact]}"
+            pkg_dir="npm/${pkg}"
+            mkdir -p "${pkg_dir}/bin"
+
+            # Extract binary from tarball
+            tar xzf "artifacts/${artifact}/"*.tar.gz -C /tmp aegis
+            cp /tmp/aegis "${pkg_dir}/bin/aegis"
+            chmod +x "${pkg_dir}/bin/aegis"
+            rm /tmp/aegis
+
+            # Set version
+            cd "${pkg_dir}"
+            npm version "${VERSION}" --no-git-tag-version --allow-same-version
+            cd ../..
+          done
+
+          # Set version on main package (and its optionalDependencies)
+          cd npm/aegis-mcp
+          npm version "${VERSION}" --no-git-tag-version --allow-same-version
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            for (const dep of Object.keys(pkg.optionalDependencies || {})) {
+              pkg.optionalDependencies[dep] = '${VERSION}';
+            }
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+          cd ../..
+
+      - name: Publish platform packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          for pkg in aegis-mcp-linux-x64 aegis-mcp-linux-arm64 aegis-mcp-darwin-x64 aegis-mcp-darwin-arm64; do
+            cd "npm/${pkg}"
+            npm publish --access public
+            cd ../..
+          done
+
+      - name: Publish main package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          cd npm/aegis-mcp
+          npm publish --access public

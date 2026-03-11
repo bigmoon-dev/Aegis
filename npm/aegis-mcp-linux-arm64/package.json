@@ -1,0 +1,8 @@
+{
+  "name": "aegis-mcp-linux-arm64",
+  "version": "0.0.0",
+  "os": ["linux"],
+  "cpu": ["arm64"],
+  "files": ["bin/"],
+  "license": "AGPL-3.0"
+}

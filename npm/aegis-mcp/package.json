@@ -1,0 +1,15 @@
+{
+  "name": "aegis-mcp",
+  "version": "0.0.0",
+  "description": "Aegis MCP — programmable guardrails proxy for MCP servers",
+  "bin": { "aegis-mcp": "./bin/index.js" },
+  "files": ["bin/"],
+  "optionalDependencies": {
+    "aegis-mcp-linux-x64": "0.0.0",
+    "aegis-mcp-linux-arm64": "0.0.0",
+    "aegis-mcp-darwin-x64": "0.0.0",
+    "aegis-mcp-darwin-arm64": "0.0.0"
+  },
+  "license": "AGPL-3.0",
+  "repository": { "type": "git", "url": "https://github.com/bigmoon-dev/Aegis" }
+}

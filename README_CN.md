@@ -57,12 +57,53 @@ Aegis MCP 将软规则转化为 **MCP 协议层的程序化硬约束**。无论 
 
 - **单二进制部署** — Go 编写，仅 3 个依赖（SQLite、YAML、UUID），可在树莓派上运行。
 
+## 安装
+
+### npm（推荐 MCP 用户使用）
+
+```bash
+npx aegis-mcp config/aegis.yaml
+# 或全局安装：
+npm install -g aegis-mcp
+aegis-mcp config/aegis.yaml
+```
+
+### 预编译二进制
+
+从 [GitHub Releases](https://github.com/bigmoon-dev/Aegis/releases) 下载：
+
+```bash
+tar xzf aegis_v*.tar.gz
+./aegis config/aegis.yaml
+```
+
+### Docker
+
+```bash
+docker run --rm -v $(pwd)/config:/config ghcr.io/bigmoon-dev/aegis /config/aegis.yaml
+```
+
+### go install
+
+需要 Go 1.22+ 和 CGO (gcc)：
+
+```bash
+CGO_ENABLED=1 go install github.com/bigmoon-dev/aegis/cmd/aegis@latest
+aegis config/aegis.yaml
+```
+
+### 从源码构建
+
+```bash
+git clone https://github.com/bigmoon-dev/Aegis.git
+cd Aegis
+make build
+./aegis config/aegis.yaml
+```
+
 ## 快速开始
 
 ```bash
-# 构建
-make build
-
 # 初始化配置
 make init-config
 # 编辑 config/aegis.yaml 填入你的配置

@@ -57,12 +57,53 @@ Unlike SDK-based approaches that require code changes in each agent, Aegis MCP w
 
 - **Single Binary** — Written in Go with only 3 dependencies (SQLite, YAML, UUID). Runs on a Raspberry Pi.
 
+## Installation
+
+### npm (recommended for MCP users)
+
+```bash
+npx aegis-mcp config/aegis.yaml
+# Or install globally:
+npm install -g aegis-mcp
+aegis-mcp config/aegis.yaml
+```
+
+### Pre-built binaries
+
+Download from [GitHub Releases](https://github.com/bigmoon-dev/Aegis/releases):
+
+```bash
+tar xzf aegis_v*.tar.gz
+./aegis config/aegis.yaml
+```
+
+### Docker
+
+```bash
+docker run --rm -v $(pwd)/config:/config ghcr.io/bigmoon-dev/aegis /config/aegis.yaml
+```
+
+### go install
+
+Requires Go 1.22+ and CGO (gcc):
+
+```bash
+CGO_ENABLED=1 go install github.com/bigmoon-dev/aegis/cmd/aegis@latest
+aegis config/aegis.yaml
+```
+
+### Build from source
+
+```bash
+git clone https://github.com/bigmoon-dev/Aegis.git
+cd Aegis
+make build
+./aegis config/aegis.yaml
+```
+
 ## Quick Start
 
 ```bash
-# Build
-make build
-
 # Initialize config from example
 make init-config
 # Edit config/aegis.yaml with your settings
