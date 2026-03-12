@@ -1,7 +1,7 @@
 # Aegis MCP
 
 [![CI](https://github.com/bigmoon-dev/Aegis/actions/workflows/ci.yml/badge.svg)](https://github.com/bigmoon-dev/Aegis/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-89.3%25-brightgreen)](docs/testing.md)
+[![Coverage](https://img.shields.io/badge/coverage-90.7%25-brightgreen)](docs/testing.md)
 [![Go Report Card](https://goreportcard.com/badge/github.com/bigmoon-dev/aegis)](https://goreportcard.com/report/github.com/bigmoon-dev/aegis)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 
