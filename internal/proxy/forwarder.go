@@ -20,6 +20,7 @@ type Forwarder struct {
 	client *http.Client
 }
 
+// NewForwarder creates a forwarder that sends requests to backend MCP servers.
 func NewForwarder(cfgMgr *config.Manager) *Forwarder {
 	return &Forwarder{
 		cfgMgr: cfgMgr,

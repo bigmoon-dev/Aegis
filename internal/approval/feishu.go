@@ -15,6 +15,7 @@ type FeishuNotifier struct {
 	client     *http.Client
 }
 
+// NewFeishuNotifier creates a notifier that sends interactive cards to Feishu.
 func NewFeishuNotifier(webhookURL string) *FeishuNotifier {
 	return &FeishuNotifier{
 		webhookURL: webhookURL,
@@ -22,6 +23,7 @@ func NewFeishuNotifier(webhookURL string) *FeishuNotifier {
 	}
 }
 
+// Notify sends an approval request card to Feishu with approve/reject buttons.
 func (f *FeishuNotifier) Notify(req *PendingRequest, callbackBaseURL string, token string) error {
 	if f.webhookURL == "" {
 		log.Printf("[feishu] webhook URL not configured, skipping notification")

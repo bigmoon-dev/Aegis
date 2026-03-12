@@ -40,6 +40,7 @@ type Notifier interface {
 	Notify(req *PendingRequest, callbackBaseURL string, token string) error
 }
 
+// NewStore creates an approval store with a random HMAC signing key.
 func NewStore(cfgMgr *config.Manager, notifier Notifier) *Store {
 	key := make([]byte, 32)
 	if _, err := rand.Read(key); err != nil {

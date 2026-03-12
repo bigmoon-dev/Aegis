@@ -17,12 +17,15 @@ type RateLimiter struct {
 	logger *audit.Logger
 }
 
+// NewRateLimiter creates a rate limiter stage using audit log counts.
 func NewRateLimiter(cfgMgr *config.Manager, logger *audit.Logger) *RateLimiter {
 	return &RateLimiter{cfgMgr: cfgMgr, logger: logger}
 }
 
+// Name returns the stage name for audit logging.
 func (r *RateLimiter) Name() string { return "rate_limiter" }
 
+// Process checks global and per-agent sliding window rate limits.
 func (r *RateLimiter) Process(_ context.Context, req *model.PipelineRequest) (*model.StageResult, error) {
 	cfg := r.cfgMgr.Get()
 

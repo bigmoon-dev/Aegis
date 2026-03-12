@@ -14,12 +14,15 @@ type ACL struct {
 	cfgMgr *config.Manager
 }
 
+// NewACL creates an ACL stage that checks agent permissions from config.
 func NewACL(cfgMgr *config.Manager) *ACL {
 	return &ACL{cfgMgr: cfgMgr}
 }
 
+// Name returns the stage name for audit logging.
 func (a *ACL) Name() string { return "acl" }
 
+// Process checks whether the agent is allowed to call the specified tool.
 func (a *ACL) Process(_ context.Context, req *model.PipelineRequest) (*model.StageResult, error) {
 	cfg := a.cfgMgr.Get()
 

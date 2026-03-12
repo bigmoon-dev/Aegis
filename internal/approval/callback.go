@@ -10,6 +10,7 @@ type CallbackHandler struct {
 	store *Store
 }
 
+// NewCallbackHandler creates a handler for approval callback URLs.
 func NewCallbackHandler(store *Store) *CallbackHandler {
 	return &CallbackHandler{store: store}
 }

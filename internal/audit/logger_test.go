@@ -31,10 +31,10 @@ func TestLog_WriteAndQuery(t *testing.T) {
 	l := tempLogger(t)
 
 	l.Log(&model.AuditEntry{
-		RequestID: "req-1",
-		AgentID:   "agent-a",
-		BackendID: "backend-b",
-		ToolName:  "echo",
+		RequestID:  "req-1",
+		AgentID:    "agent-a",
+		BackendID:  "backend-b",
+		ToolName:   "echo",
 		ExecStatus: "success",
 	})
 
@@ -202,5 +202,92 @@ func TestQuery_Pagination(t *testing.T) {
 	}
 	if len(rows) != 2 {
 		t.Errorf("expected 2 rows with limit=2, got %d", len(rows))
+	}
+}
+
+func TestClose_MultipleCalls(t *testing.T) {
+	dir := t.TempDir()
+	l, err := NewLogger(filepath.Join(dir, "test.db"))
+	if err != nil {
+		t.Fatalf("NewLogger: %v", err)
+	}
+
+	// First close should succeed
+	if err := l.Close(); err != nil {
+		t.Errorf("first Close: %v", err)
+	}
+
+	// Second close should not panic (closeOnce protects stopCh)
+	l.Close()
+}
+
+func TestStartPurgeLoop_RunsAndStops(t *testing.T) {
+	l := tempLogger(t)
+
+	// Insert an entry so purge has something to check
+	l.Log(&model.AuditEntry{
+		RequestID:  "purge-test",
+		AgentID:    "agent-a",
+		ExecStatus: "success",
+	})
+
+	// StartPurgeLoop runs startup purge immediately
+	l.StartPurgeLoop(90)
+
+	// Give the startup purge goroutine time to execute
+	time.Sleep(50 * time.Millisecond)
+
+	// Verify the entry still exists (90 day retention, entry is fresh)
+	rows, err := l.Query(10, 0)
+	if err != nil {
+		t.Fatalf("Query: %v", err)
+	}
+	if len(rows) != 1 {
+		t.Errorf("expected 1 row after startup purge with 90d retention, got %d", len(rows))
+	}
+
+	// Close stops the purge loop goroutine
+	l.Close()
+}
+
+func TestRecordCall_AfterClose(t *testing.T) {
+	dir := t.TempDir()
+	l, err := NewLogger(filepath.Join(dir, "test.db"))
+	if err != nil {
+		t.Fatalf("NewLogger: %v", err)
+	}
+	l.Close()
+
+	// RecordCall after close should not panic (logs error internally)
+	l.RecordCall("agent-a", "tool-x")
+}
+
+func TestLog_AfterClose(t *testing.T) {
+	dir := t.TempDir()
+	l, err := NewLogger(filepath.Join(dir, "test.db"))
+	if err != nil {
+		t.Fatalf("NewLogger: %v", err)
+	}
+	l.Close()
+
+	// Log after close should not panic (logs error internally)
+	l.Log(&model.AuditEntry{
+		RequestID:  "after-close",
+		AgentID:    "agent-a",
+		ExecStatus: "success",
+	})
+}
+
+func TestQuery_AfterClose(t *testing.T) {
+	dir := t.TempDir()
+	l, err := NewLogger(filepath.Join(dir, "test.db"))
+	if err != nil {
+		t.Fatalf("NewLogger: %v", err)
+	}
+	l.Close()
+
+	_, err = l.Query(10, 0)
+	if err == nil {
+		t.Error("expected error querying after Close")
 	}
 }

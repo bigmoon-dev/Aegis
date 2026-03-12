@@ -41,6 +41,7 @@ type FIFOQueue struct {
 	wg      sync.WaitGroup             // tracks active workers
 }
 
+// NewFIFOQueue creates a queue with per-backend workers.
 func NewFIFOQueue(cfgMgr *config.Manager, forward ForwardFunc) *FIFOQueue {
 	return &FIFOQueue{
 		cfgMgr:  cfgMgr,

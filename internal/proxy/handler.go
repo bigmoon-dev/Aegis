@@ -46,6 +46,7 @@ func NewHandler(
 	}
 }
 
+// ServeHTTP routes incoming MCP requests by method (tools/call, tools/list, or passthrough).
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Extract agent ID from path: /agents/{agentID}/mcp
 	agentID, backendID := h.parsePath(r.URL.Path)
@@ -120,7 +121,7 @@ func (h *Handler) handleToolsCall(w http.ResponseWriter, r *http.Request, agentI
 	)
 	if err != nil {
 		log.Printf("[proxy] pipeline error: %v", err)
-		h.writeJSONRPCError(w, rpcReq.ID, model.ErrCodeInternal, err.Error())
+		h.writeJSONRPCError(w, rpcReq.ID, model.ErrCodeInternal, "internal proxy error")
 		return
 	}
 
@@ -135,7 +136,7 @@ func (h *Handler) handleToolsList(w http.ResponseWriter, r *http.Request, agentI
 	resp, respSessionID, err := h.forwarder.Forward(r.Context(), backendID, rpcReq, sessionID)
 	if err != nil {
 		log.Printf("[proxy] tools/list forward error: %v", err)
-		h.writeJSONRPCError(w, rpcReq.ID, model.ErrCodeInternal, err.Error())
+		h.writeJSONRPCError(w, rpcReq.ID, model.ErrCodeInternal, "failed to fetch tools from backend")
 		return
 	}
 	if respSessionID != "" {
@@ -163,7 +164,7 @@ func (h *Handler) handlePassthrough(w http.ResponseWriter, r *http.Request, agen
 	respBody, statusCode, respSessionID, err := h.forwarder.ForwardRaw(r.Context(), backendID, body, sessionID)
 	if err != nil {
 		log.Printf("[proxy] passthrough error: %v", err)
-		http.Error(w, err.Error(), http.StatusBadGateway)
+		http.Error(w, "backend unavailable", http.StatusBadGateway)
 		return
 	}
 	if respSessionID != "" {

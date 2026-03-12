@@ -21,6 +21,16 @@ jobs:
           CGO_ENABLED: "1"
         run: go build ./...
 
+      - name: Lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+
+      - name: Vulnerability Check
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+
       - name: Test
         env:
           CGO_ENABLED: "1"
@@ -34,22 +44,3 @@ jobs:
           go tool cover -func=coverage.out | tail -1
           COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}')
           echo "### Coverage: $COVERAGE" >> $GITHUB_STEP_SUMMARY
-
-      # To enable dynamic coverage badge:
-      # 1. Create a Gist and note the ID
-      # 2. Create a PAT with gist scope, add as GIST_TOKEN secret
-      # 3. Add COVERAGE_GIST_ID as a repository variable
-      # 4. Uncomment the step below and update README badge URLs
-      #
-      # - name: Update coverage badge
-      #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      #   uses: schneegans/dynamic-badges-action@v1.7.0
-      #   with:
-      #     auth: ${{ secrets.GIST_TOKEN }}
-      #     gistID: ${{ vars.COVERAGE_GIST_ID }}
-      #     filename: aegis-coverage.json
-      #     label: coverage
-      #     message: ${{ env.COVERAGE }}
-      #     valColorRange: ${{ env.COVERAGE }}
-      #     minColorRange: 50
-      #     maxColorRange: 100

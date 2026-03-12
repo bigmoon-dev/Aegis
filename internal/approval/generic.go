@@ -15,6 +15,7 @@ type GenericWebhookNotifier struct {
 	client     *http.Client
 }
 
+// NewGenericWebhookNotifier creates a notifier that POSTs JSON to any webhook URL.
 func NewGenericWebhookNotifier(webhookURL string) *GenericWebhookNotifier {
 	return &GenericWebhookNotifier{
 		webhookURL: webhookURL,
@@ -22,6 +23,7 @@ func NewGenericWebhookNotifier(webhookURL string) *GenericWebhookNotifier {
 	}
 }
 
+// Notify sends an approval request payload to the generic webhook endpoint.
 func (g *GenericWebhookNotifier) Notify(req *PendingRequest, callbackBaseURL string, token string) error {
 	if g.webhookURL == "" {
 		log.Printf("[generic] webhook URL not configured, skipping notification")

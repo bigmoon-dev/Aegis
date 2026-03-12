@@ -16,12 +16,15 @@ type ApprovalGate struct {
 	store  *approval.Store
 }
 
+// NewApprovalGate creates an approval gate stage.
 func NewApprovalGate(cfgMgr *config.Manager, store *approval.Store) *ApprovalGate {
 	return &ApprovalGate{cfgMgr: cfgMgr, store: store}
 }
 
+// Name returns the stage name for audit logging.
 func (a *ApprovalGate) Name() string { return "approval" }
 
+// Process blocks until the request is approved, rejected, or times out.
 func (a *ApprovalGate) Process(ctx context.Context, req *model.PipelineRequest) (*model.StageResult, error) {
 	cfg := a.cfgMgr.Get()
 

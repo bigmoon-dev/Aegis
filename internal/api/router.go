@@ -23,6 +23,7 @@ type Router struct {
 	mux           *http.ServeMux
 }
 
+// NewRouter creates a management API router.
 func NewRouter(
 	cfgMgr *config.Manager,
 	queue *pipeline.FIFOQueue,
@@ -46,6 +47,7 @@ func NewRouter(
 	return r
 }
 
+// ServeHTTP handles API requests with optional Bearer token authentication.
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if token := r.cfgMgr.Get().Server.APIToken; token != "" {
 		auth := req.Header.Get("Authorization")
