@@ -275,6 +275,23 @@ POST /api/v1/config/reload             # 热更新配置
 
 批准或拒绝只需对相应 URL 发送 GET 请求。飞书和通用 Webhook 可同时配置，两个渠道都会收到通知。
 
+## 开发
+
+### 运行测试
+
+```bash
+# 全部测试
+CGO_ENABLED=1 go test ./... -count=1
+
+# 带 race detector（推荐）
+CGO_ENABLED=1 go test -race ./... -count=1
+
+# 带覆盖率
+CGO_ENABLED=1 go test -cover ./internal/...
+```
+
+测试使用临时 SQLite 数据库和内存配置，无需外部依赖。CI 在每次 push 和 PR 时自动运行 `go test -race`。
+
 ## 环境要求
 
 - Go 1.22+（需启用 CGO 以支持 SQLite）

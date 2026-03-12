@@ -275,6 +275,23 @@ When `approval.generic.webhook_url` is configured, Aegis sends a POST request wi
 
 To approve or reject, make a GET request to the corresponding URL. Both Feishu and generic webhook can be configured simultaneously — both will be notified.
 
+## Development
+
+### Running Tests
+
+```bash
+# All tests
+CGO_ENABLED=1 go test ./... -count=1
+
+# With race detector (recommended)
+CGO_ENABLED=1 go test -race ./... -count=1
+
+# With coverage
+CGO_ENABLED=1 go test -cover ./internal/...
+```
+
+Tests use temporary SQLite databases and in-memory configs — no external dependencies required. CI runs `go test -race` on every push and pull request.
+
 ## Requirements
 
 - Go 1.22+ (CGO enabled for SQLite)
