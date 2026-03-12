@@ -25,7 +25,9 @@ func TestForwarder_Forward_Success(t *testing.T) {
 
 		body, _ := io.ReadAll(r.Body)
 		var req model.Request
-		json.Unmarshal(body, &req)
+		if err := json.Unmarshal(body, &req); err != nil {
+			t.Errorf("unmarshal request: %v", err)
+		}
 
 		resp := model.Response{
 			JSONRPC: "2.0",
@@ -35,7 +37,7 @@ func TestForwarder_Forward_Success(t *testing.T) {
 
 		w.Header().Set("Mcp-Session-Id", "backend-session-1")
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	}))
 	defer srv.Close()
 
@@ -70,7 +72,7 @@ func TestForwarder_Forward_WithSessionID(t *testing.T) {
 		receivedSessionID = r.Header.Get("Mcp-Session-Id")
 		resp := model.Response{JSONRPC: "2.0", ID: json.RawMessage(`1`)}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	}))
 	defer srv.Close()
 
@@ -109,7 +111,7 @@ func TestForwarder_Forward_UnknownBackend(t *testing.T) {
 func TestForwarder_Forward_BackendError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("internal error"))
+		_, _ = w.Write([]byte("internal error"))
 	}))
 	defer srv.Close()
 
@@ -149,7 +151,7 @@ func TestForwarder_ForwardRaw_Success(t *testing.T) {
 		body, _ := io.ReadAll(r.Body)
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Mcp-Session-Id", "raw-session")
-		w.Write(body) // echo back
+		_, _ = w.Write(body) // echo back
 	}))
 	defer srv.Close()
 
@@ -193,7 +195,7 @@ func TestForwarder_Forward_DefaultTimeout(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		resp := model.Response{JSONRPC: "2.0", ID: json.RawMessage(`1`)}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	}))
 	defer srv.Close()
 
@@ -217,7 +219,7 @@ func TestForwarder_ForwardRaw_Non200(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`{"error":"bad request"}`))
+		_, _ = w.Write([]byte(`{"error":"bad request"}`))
 	}))
 	defer srv.Close()
 

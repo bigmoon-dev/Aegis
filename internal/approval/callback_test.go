@@ -181,7 +181,7 @@ func TestCallbackHandler_AlreadyResolved(t *testing.T) {
 
 	// Create and immediately resolve a request
 	go func() {
-		s.RequestApproval(context.Background(), &model.PipelineRequest{
+		_, _ = s.RequestApproval(context.Background(), &model.PipelineRequest{
 			AgentID:  "agent-a",
 			ToolName: "publish",
 		})

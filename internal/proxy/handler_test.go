@@ -116,7 +116,7 @@ func TestHandler_InvalidJSON(t *testing.T) {
 	}
 
 	var resp model.Response
-	json.NewDecoder(w.Body).Decode(&resp)
+	_ = json.NewDecoder(w.Body).Decode(&resp)
 	if resp.Error == nil || resp.Error.Code != model.ErrCodeParseError {
 		t.Errorf("expected parse error -32700, got %+v", resp.Error)
 	}
@@ -127,7 +127,7 @@ func TestHandler_Passthrough(t *testing.T) {
 	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Mcp-Session-Id", "sess-1")
-		json.NewEncoder(w).Encode(map[string]any{
+		_ = json.NewEncoder(w).Encode(map[string]any{
 			"jsonrpc": "2.0",
 			"id":      1,
 			"result": map[string]any{
@@ -220,7 +220,7 @@ func TestHealthCheck_AllHealthy(t *testing.T) {
 	}
 
 	var result map[string]any
-	json.NewDecoder(w.Body).Decode(&result)
+	_ = json.NewDecoder(w.Body).Decode(&result)
 	if result["status"] != "ok" {
 		t.Errorf("expected status=ok, got %v", result["status"])
 	}
@@ -239,7 +239,7 @@ func TestHealthCheck_BackendDown(t *testing.T) {
 	handler(w, req)
 
 	var result map[string]any
-	json.NewDecoder(w.Body).Decode(&result)
+	_ = json.NewDecoder(w.Body).Decode(&result)
 	if result["status"] != "degraded" {
 		t.Errorf("expected status=degraded, got %v", result["status"])
 	}
@@ -258,7 +258,7 @@ func TestHealthCheck_NoHealthURL(t *testing.T) {
 	handler(w, req)
 
 	var result map[string]any
-	json.NewDecoder(w.Body).Decode(&result)
+	_ = json.NewDecoder(w.Body).Decode(&result)
 	backends := result["backends"].(map[string]any)
 	if backends["demo"] != "no_health_url" {
 		t.Errorf("expected no_health_url, got %v", backends["demo"])
@@ -268,9 +268,9 @@ func TestHealthCheck_NoHealthURL(t *testing.T) {
 func TestNewMux_RoutesRegistered(t *testing.T) {
 	cfgMgr := config.NewManagerFromConfig(testConfig())
 	handler := NewHandler(cfgMgr, nil, NewSessionManager(), nil, nil, nil)
-	healthHandler := func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("ok")) }
-	callbackHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("cb")) })
-	apiHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("api")) })
+	healthHandler := func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte("ok")) }
+	callbackHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte("cb")) })
+	apiHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte("api")) })
 
 	mux := NewMux(handler, healthHandler, callbackHandler, apiHandler)
 
@@ -287,7 +287,7 @@ func TestHandler_ToolsCall(t *testing.T) {
 	// Backend mock that returns a tools/call result
 	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(model.Response{
+		_ = json.NewEncoder(w).Encode(model.Response{
 			JSONRPC: "2.0",
 			ID:      json.RawMessage(`1`),
 			Result:  json.RawMessage(`{"content":[{"type":"text","text":"echoed: hello"}]}`),
@@ -347,7 +347,7 @@ func TestHandler_ToolsCall(t *testing.T) {
 	}
 
 	var resp model.Response
-	json.NewDecoder(w.Body).Decode(&resp)
+	_ = json.NewDecoder(w.Body).Decode(&resp)
 	if resp.Error != nil {
 		t.Errorf("expected no error, got %+v", resp.Error)
 	}
@@ -364,7 +364,7 @@ func TestHandler_ToolsList(t *testing.T) {
 		}
 		resultJSON, _ := json.Marshal(tools)
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(model.Response{
+		_ = json.NewEncoder(w).Encode(model.Response{
 			JSONRPC: "2.0",
 			ID:      json.RawMessage(`1`),
 			Result:  resultJSON,
@@ -408,13 +408,15 @@ func TestHandler_ToolsList(t *testing.T) {
 	}
 
 	var resp model.Response
-	json.NewDecoder(w.Body).Decode(&resp)
+	_ = json.NewDecoder(w.Body).Decode(&resp)
 	if resp.Error != nil {
 		t.Fatalf("expected no error, got %+v", resp.Error)
 	}
 
 	var result model.ToolsListResult
-	json.Unmarshal(resp.Result, &result)
+	if err := json.Unmarshal(resp.Result, &result); err != nil {
+		t.Fatalf("unmarshal tools list: %v", err)
+	}
 
 	// admin_reset should be filtered out
 	if len(result.Tools) != 1 {
@@ -442,7 +444,7 @@ func TestHandler_ToolsCall_InvalidParams(t *testing.T) {
 	h.ServeHTTP(w, req)
 
 	var resp model.Response
-	json.NewDecoder(w.Body).Decode(&resp)
+	_ = json.NewDecoder(w.Body).Decode(&resp)
 	if resp.Error == nil || resp.Error.Code != model.ErrCodeInvalidParams {
 		t.Errorf("expected invalid params error, got %+v", resp.Error)
 	}

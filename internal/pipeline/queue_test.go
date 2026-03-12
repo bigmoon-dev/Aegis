@@ -180,7 +180,7 @@ func TestQueue_Full_Reject(t *testing.T) {
 			defer wg.Done()
 			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 			defer cancel()
-			q.Enqueue(ctx, makeReq())
+			_, _, _ = q.Enqueue(ctx, makeReq())
 		}()
 	}
 
@@ -244,11 +244,8 @@ func TestQueue_Shutdown_UnblocksEnqueue(t *testing.T) {
 	q.Stop()
 
 	select {
-	case err := <-done:
-		if err == nil {
-			// The first item may have been picked up by the worker and executed
-			// (which is fine). But if there's an error, it should be shutdown-related.
-		}
+	case <-done:
+		// The first item may have completed or failed due to shutdown — both are fine.
 	case <-time.After(5 * time.Second):
 		t.Fatal("Enqueue not unblocked after Stop (race condition)")
 	}

@@ -72,8 +72,8 @@ func runDemo() {
 
 	// Wait for demo server to be ready
 	if err := waitForHealth("http://127.0.0.1:9100/health", 10*time.Second); err != nil {
-		nodeCmd.Process.Kill()
-		nodeCmd.Wait()
+		_ = nodeCmd.Process.Kill()
+		_ = nodeCmd.Wait()
 		log.Fatalf("demo server not ready: %v", err)
 	}
 	log.Println("demo MCP server ready on :9100")
@@ -81,8 +81,8 @@ func runDemo() {
 	// Start Aegis proxy
 	srv, cleanup, err := startServer(configPath)
 	if err != nil {
-		nodeCmd.Process.Kill()
-		nodeCmd.Wait()
+		_ = nodeCmd.Process.Kill()
+		_ = nodeCmd.Wait()
 		log.Fatalf("start aegis: %v", err)
 	}
 
@@ -105,20 +105,20 @@ func runDemo() {
 	// Graceful shutdown
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	srv.Shutdown(shutdownCtx)
+	_ = srv.Shutdown(shutdownCtx)
 	cleanup()
 
-	nodeCmd.Process.Signal(syscall.SIGTERM)
+	_ = nodeCmd.Process.Signal(syscall.SIGTERM)
 	done := make(chan struct{})
 	go func() {
-		nodeCmd.Wait()
+		_ = nodeCmd.Wait()
 		close(done)
 	}()
 	select {
 	case <-done:
 	case <-time.After(3 * time.Second):
-		nodeCmd.Process.Kill()
-		nodeCmd.Wait()
+		_ = nodeCmd.Process.Kill()
+		_ = nodeCmd.Wait()
 	}
 
 	fmt.Println("Demo stopped. Goodbye!")

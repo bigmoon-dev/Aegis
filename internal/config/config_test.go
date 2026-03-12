@@ -245,7 +245,9 @@ agents:
 audit:
   db_path: "./test.db"
 `
-	os.WriteFile(cfgPath, []byte(cfgYAML), 0644)
+	if err := os.WriteFile(cfgPath, []byte(cfgYAML), 0644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
 
 	mgr, err := NewManager(cfgPath)
 	if err != nil {
@@ -268,7 +270,9 @@ func TestNewManager_InvalidPath(t *testing.T) {
 func TestNewManager_InvalidYAML(t *testing.T) {
 	dir := t.TempDir()
 	cfgPath := filepath.Join(dir, "config.yaml")
-	os.WriteFile(cfgPath, []byte(`invalid: yaml: [[[`), 0644)
+	if err := os.WriteFile(cfgPath, []byte(`invalid: yaml: [[[`), 0644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
 
 	_, err := NewManager(cfgPath)
 	if err == nil {
@@ -280,7 +284,9 @@ func TestNewManager_InvalidConfig(t *testing.T) {
 	dir := t.TempDir()
 	cfgPath := filepath.Join(dir, "config.yaml")
 	// Valid YAML but no backends → validation error
-	os.WriteFile(cfgPath, []byte("server:\n  listen: \":8080\"\n"), 0644)
+	if err := os.WriteFile(cfgPath, []byte("server:\n  listen: \":8080\"\n"), 0644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
 
 	_, err := NewManager(cfgPath)
 	if err == nil {
@@ -302,7 +308,9 @@ agents:
       demo:
         allowed: true
 `
-	os.WriteFile(cfgPath, []byte(cfgYAML), 0644)
+	if err := os.WriteFile(cfgPath, []byte(cfgYAML), 0644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
 
 	mgr, err := NewManager(cfgPath)
 	if err != nil {
@@ -323,7 +331,9 @@ agents:
       demo:
         allowed: true
 `
-	os.WriteFile(cfgPath, []byte(newYAML), 0644)
+	if err := os.WriteFile(cfgPath, []byte(newYAML), 0644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
 
 	if err := mgr.Reload(); err != nil {
 		t.Fatalf("reload error: %v", err)

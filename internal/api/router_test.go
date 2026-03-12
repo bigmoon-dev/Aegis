@@ -149,7 +149,9 @@ func TestRouter_QueueStatus(t *testing.T) {
 	}
 
 	var result map[string]any
-	json.NewDecoder(w.Body).Decode(&result)
+	if err := json.NewDecoder(w.Body).Decode(&result); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
 	if result == nil {
 		t.Error("expected JSON response")
 	}
@@ -167,7 +169,9 @@ func TestRouter_ListAgents(t *testing.T) {
 	}
 
 	var agents []map[string]any
-	json.NewDecoder(w.Body).Decode(&agents)
+	if err := json.NewDecoder(w.Body).Decode(&agents); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
 	if len(agents) != 1 {
 		t.Errorf("expected 1 agent, got %d", len(agents))
 	}
@@ -188,7 +192,9 @@ func TestRouter_AgentRateLimits(t *testing.T) {
 	}
 
 	var limits []map[string]any
-	json.NewDecoder(w.Body).Decode(&limits)
+	if err := json.NewDecoder(w.Body).Decode(&limits); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
 
 	// Should have per-agent (publish) + global (search)
 	if len(limits) < 2 {
@@ -249,7 +255,7 @@ func TestRouter_PendingApprovals_Empty(t *testing.T) {
 	}
 
 	var pending []any
-	json.NewDecoder(w.Body).Decode(&pending)
+	_ = json.NewDecoder(w.Body).Decode(&pending)
 	if len(pending) != 0 {
 		t.Errorf("expected 0 pending, got %d", len(pending))
 	}
@@ -305,7 +311,7 @@ func TestRouter_ApproveAndReject(t *testing.T) {
 		req := httptest.NewRequest("GET", "/api/v1/approvals/pending", nil)
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, req)
-		json.NewDecoder(w.Body).Decode(&pending)
+		_ = json.NewDecoder(w.Body).Decode(&pending)
 		if len(pending) == 1 {
 			break
 		}
@@ -407,7 +413,7 @@ func TestRouter_AuditLogs_WithPagination(t *testing.T) {
 	}
 
 	var logs []map[string]any
-	json.NewDecoder(w.Body).Decode(&logs)
+	_ = json.NewDecoder(w.Body).Decode(&logs)
 	if len(logs) != 2 {
 		t.Errorf("expected 2 logs with limit=2, got %d", len(logs))
 	}
@@ -452,7 +458,9 @@ agents:
       demo:
         allowed: true
 `
-	os.WriteFile(cfgPath, []byte(cfgYAML), 0644)
+	if err := os.WriteFile(cfgPath, []byte(cfgYAML), 0644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
 
 	cfgMgr, err := config.NewManager(cfgPath)
 	if err != nil {
@@ -480,7 +488,7 @@ agents:
 	}
 
 	var result map[string]string
-	json.NewDecoder(w.Body).Decode(&result)
+	_ = json.NewDecoder(w.Body).Decode(&result)
 	if result["status"] != "ok" {
 		t.Errorf("expected status=ok, got %s", result["status"])
 	}

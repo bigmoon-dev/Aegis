@@ -206,7 +206,7 @@ func TestStore_ResolveAfterTimeout(t *testing.T) {
 
 	done := make(chan struct{})
 	go func() {
-		s.RequestApproval(context.Background(), &model.PipelineRequest{
+		_, _ = s.RequestApproval(context.Background(), &model.PipelineRequest{
 			AgentID:  "agent-a",
 			ToolName: "publish",
 		})
@@ -255,7 +255,7 @@ func TestStore_ListPending_Multiple(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			s.RequestApproval(context.Background(), &model.PipelineRequest{
+			_, _ = s.RequestApproval(context.Background(), &model.PipelineRequest{
 				AgentID:  "agent-a",
 				ToolName: "publish",
 			})
@@ -327,7 +327,7 @@ func TestStore_NotifiesDuringApproval(t *testing.T) {
 	s := testStore(n)
 
 	go func() {
-		s.RequestApproval(context.Background(), &model.PipelineRequest{
+		_, _ = s.RequestApproval(context.Background(), &model.PipelineRequest{
 			AgentID:  "agent-a",
 			ToolName: "publish",
 		})

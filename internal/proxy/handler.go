@@ -173,12 +173,12 @@ func (h *Handler) handlePassthrough(w http.ResponseWriter, r *http.Request, agen
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	w.Write(respBody)
+	_, _ = w.Write(respBody)
 }
 
 func (h *Handler) writeJSON(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(v)
+	_ = json.NewEncoder(w).Encode(v)
 }
 
 func (h *Handler) writeJSONRPCError(w http.ResponseWriter, id json.RawMessage, code int, message string) {
@@ -265,7 +265,7 @@ func HealthCheck(cfgMgr *config.Manager) http.HandlerFunc {
 		status["backends"] = backends
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(status)
+		_ = json.NewEncoder(w).Encode(status)
 	}
 }
 
