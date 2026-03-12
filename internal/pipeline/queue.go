@@ -33,12 +33,12 @@ type FIFOQueue struct {
 	cfgMgr  *config.Manager
 	forward ForwardFunc
 
-	mu       sync.Mutex
-	queues   map[string]chan *queueItem // per-backend channels
-	lengths  map[string]int            // current queue length per backend
-	stopChs  map[string]chan struct{}   // per-backend stop signals
-	stopped  bool                      // prevents double-close
-	wg       sync.WaitGroup            // tracks active workers
+	mu      sync.Mutex
+	queues  map[string]chan *queueItem // per-backend channels
+	lengths map[string]int             // current queue length per backend
+	stopChs map[string]chan struct{}   // per-backend stop signals
+	stopped bool                       // prevents double-close
+	wg      sync.WaitGroup             // tracks active workers
 }
 
 func NewFIFOQueue(cfgMgr *config.Manager, forward ForwardFunc) *FIFOQueue {

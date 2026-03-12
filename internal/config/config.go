@@ -4,12 +4,12 @@ import "time"
 
 // Config is the root configuration structure.
 type Config struct {
-	Server   ServerConfig              `yaml:"server"`
-	Backends map[string]BackendConfig  `yaml:"backends"`
-	Queue    map[string]QueueConfig    `yaml:"queue"`
-	Agents   map[string]AgentConfig    `yaml:"agents"`
-	Approval ApprovalConfig            `yaml:"approval"`
-	Audit    AuditConfig               `yaml:"audit"`
+	Server   ServerConfig             `yaml:"server"`
+	Backends map[string]BackendConfig `yaml:"backends"`
+	Queue    map[string]QueueConfig   `yaml:"queue"`
+	Agents   map[string]AgentConfig   `yaml:"agents"`
+	Approval ApprovalConfig           `yaml:"approval"`
+	Audit    AuditConfig              `yaml:"audit"`
 }
 
 // ServerConfig holds HTTP server settings.
@@ -39,7 +39,7 @@ type QueueConfig struct {
 
 // AgentConfig defines per-agent access rules.
 type AgentConfig struct {
-	DisplayName string                       `yaml:"display_name"`
+	DisplayName string                        `yaml:"display_name"`
 	Backends    map[string]AgentBackendConfig `yaml:"backends"`
 }
 
@@ -59,10 +59,10 @@ type RateLimitConfig struct {
 
 // ApprovalConfig holds approval system settings.
 type ApprovalConfig struct {
-	Feishu          FeishuConfig          `yaml:"feishu"`
-	Generic         GenericWebhookConfig  `yaml:"generic"`
-	Timeout         time.Duration         `yaml:"timeout"`
-	CallbackBaseURL string                `yaml:"callback_base_url"`
+	Feishu          FeishuConfig         `yaml:"feishu"`
+	Generic         GenericWebhookConfig `yaml:"generic"`
+	Timeout         time.Duration        `yaml:"timeout"`
+	CallbackBaseURL string               `yaml:"callback_base_url"`
 }
 
 // FeishuConfig holds Feishu webhook settings.

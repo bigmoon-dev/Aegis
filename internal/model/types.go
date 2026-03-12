@@ -35,9 +35,9 @@ type AuditEntry struct {
 type Verdict int
 
 const (
-	VerdictAllow    Verdict = iota // proceed to next stage
-	VerdictDeny                    // reject the request
-	VerdictPending                 // waiting for async action (approval)
+	VerdictAllow   Verdict = iota // proceed to next stage
+	VerdictDeny                   // reject the request
+	VerdictPending                // waiting for async action (approval)
 )
 
 // StageResult carries the verdict and optional message from a pipeline stage.

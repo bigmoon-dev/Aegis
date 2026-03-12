@@ -54,13 +54,13 @@ type ToolsListResult struct {
 
 // Predefined JSON-RPC error codes for Aegis.
 const (
-	ErrCodeACLDenied    = -32001
-	ErrCodeRateLimited  = -32002
-	ErrCodeQueueFull    = -32003
-	ErrCodeApprovalDeny = -32004
-	ErrCodeParseError   = -32700 // JSON parse error per JSON-RPC 2.0 spec
+	ErrCodeACLDenied     = -32001
+	ErrCodeRateLimited   = -32002
+	ErrCodeQueueFull     = -32003
+	ErrCodeApprovalDeny  = -32004
+	ErrCodeParseError    = -32700 // JSON parse error per JSON-RPC 2.0 spec
 	ErrCodeInvalidParams = -32602 // Invalid method parameters
-	ErrCodeInternal     = -32603
+	ErrCodeInternal      = -32603
 )
 
 // NewErrorResponse creates a JSON-RPC error response.

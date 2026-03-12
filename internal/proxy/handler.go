@@ -19,12 +19,12 @@ import (
 // Handler is the main MCP proxy HTTP handler.
 // Routes: /agents/{agentID}/mcp
 type Handler struct {
-	cfgMgr     *config.Manager
-	forwarder  *Forwarder
-	sessions   *SessionManager
-	stages     []pipeline.Stage
-	queue      *pipeline.FIFOQueue
-	auditLog   *audit.Logger
+	cfgMgr    *config.Manager
+	forwarder *Forwarder
+	sessions  *SessionManager
+	stages    []pipeline.Stage
+	queue     *pipeline.FIFOQueue
+	auditLog  *audit.Logger
 }
 
 // NewHandler creates the MCP proxy handler.

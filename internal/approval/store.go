@@ -31,8 +31,8 @@ type Store struct {
 	notifier Notifier
 	hmacKey  []byte // random key for signing callback tokens
 
-	mu       sync.Mutex
-	pending  map[string]*PendingRequest
+	mu      sync.Mutex
+	pending map[string]*PendingRequest
 }
 
 // Notifier sends approval notifications (e.g., Feishu webhook, generic webhook).
@@ -46,10 +46,10 @@ func NewStore(cfgMgr *config.Manager, notifier Notifier) *Store {
 		log.Fatalf("[approval] generate HMAC key: %v", err)
 	}
 	return &Store{
-		cfgMgr:  cfgMgr,
+		cfgMgr:   cfgMgr,
 		notifier: notifier,
-		hmacKey: key,
-		pending: make(map[string]*PendingRequest),
+		hmacKey:  key,
+		pending:  make(map[string]*PendingRequest),
 	}
 }
 
