@@ -114,6 +114,26 @@ make init-config
 
 Point your MCP client to `http://localhost:18070/agents/{agent-id}/mcp` instead of the backend directly.
 
+### Try the Interactive Demo
+
+Experience all Aegis features in 5 minutes — no backend setup required. Just needs Node.js:
+
+```bash
+./aegis demo
+# or: npx aegis-mcp-proxy demo
+```
+
+This starts a mock MCP server + Aegis proxy with a pre-configured policy. The terminal prints curl commands to try each feature:
+
+| Step | What happens |
+|------|-------------|
+| `tools/list` | `admin_reset` is hidden by ACL — only 4 tools visible |
+| `echo` | Passes through with no restrictions |
+| `get_weather` ×4 | First 3 succeed, 4th is rate-limited (`-32002`) |
+| `publish_post` | Blocks until you approve via management API |
+| `list_posts` | Bypasses FIFO queue, returns immediately |
+| `audit/logs` | Shows full audit trail of all operations |
+
 ### Cross-compile for Raspberry Pi
 
 ```bash

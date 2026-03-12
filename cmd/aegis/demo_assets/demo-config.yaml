@@ -1,0 +1,40 @@
+server:
+  listen: ":18070"
+  read_timeout: 60s
+  write_timeout: 120s
+
+backends:
+  demo:
+    url: "http://127.0.0.1:9100/mcp"
+    health_url: "http://127.0.0.1:9100/health"
+    timeout: 30s
+
+queue:
+  demo:
+    enabled: true
+    delay_min: 3s
+    delay_max: 5s
+    max_pending: 10
+    bypass_tools: ["list_posts"]
+    global_rate_limits:
+      get_weather: { window: 1m, max_count: 5 }
+
+agents:
+  demo-agent:
+    display_name: "Demo Agent"
+    backends:
+      demo:
+        allowed: true
+        tool_denylist: ["admin_reset"]
+        rate_limits:
+          get_weather:  { window: 1m, max_count: 3 }
+          publish_post: { window: 1m, max_count: 2 }
+        approval_required: ["publish_post"]
+
+approval:
+  timeout: 120s
+  callback_base_url: "http://127.0.0.1:18070"
+
+audit:
+  db_path: "./data/demo-audit.db"
+  retention_days: 1

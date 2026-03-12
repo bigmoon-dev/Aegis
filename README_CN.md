@@ -114,6 +114,26 @@ make init-config
 
 将 MCP 客户端指向 `http://localhost:18070/agents/{agent-id}/mcp`，替代直接连接后端。
 
+### 交互式 Demo
+
+5 分钟体验 Aegis 全部功能，无需搭建后端。只需 Node.js：
+
+```bash
+./aegis demo
+# 或: npx aegis-mcp-proxy demo
+```
+
+启动后会自动运行 mock MCP 服务器 + Aegis 代理（内置预配置策略），终端打印 curl 命令供逐步体验：
+
+| 步骤 | 效果 |
+|------|------|
+| `tools/list` | `admin_reset` 被 ACL 隐藏，只显示 4 个工具 |
+| `echo` | 无任何限制，直接通过 |
+| `get_weather` ×4 | 前 3 次成功，第 4 次被限流（`-32002`） |
+| `publish_post` | 阻塞等待人工审批（通过管理 API 批准） |
+| `list_posts` | 旁路 FIFO 队列，立即返回 |
+| `audit/logs` | 查看所有操作的完整审计日志 |
+
 ### 交叉编译（树莓派）
 
 ```bash

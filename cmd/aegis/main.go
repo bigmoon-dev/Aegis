@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"syscall"
+	"time"
 
 	"github.com/bigmoon-dev/aegis/internal/api"
 	"github.com/bigmoon-dev/aegis/internal/approval"
@@ -18,18 +19,61 @@ import (
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "demo" {
+		runDemo()
+		return
+	}
+
 	configPath := "config/aegis.yaml"
 	if len(os.Args) > 1 {
 		configPath = os.Args[1]
 	}
+	runServer(configPath)
+}
 
+// runServer starts the Aegis proxy with the given config and blocks until
+// SIGINT/SIGTERM is received.
+func runServer(configPath string) {
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
 	log.Printf("aegis starting, config=%s", configPath)
 
+	srv, shutdown, err := startServer(configPath)
+	if err != nil {
+		log.Fatalf("start server: %v", err)
+	}
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	go func() {
+		log.Printf("listening on %s", srv.Addr)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("server error: %v", err)
+		}
+	}()
+
+	<-ctx.Done()
+	log.Println("shutting down...")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("shutdown error: %v", err)
+	}
+	shutdown()
+
+	log.Println("aegis stopped")
+}
+
+// startServer initializes all components and returns the HTTP server ready to
+// ListenAndServe, plus a cleanup function. The caller is responsible for
+// starting the server and calling shutdown when done.
+func startServer(configPath string) (*http.Server, func(), error) {
 	// Load configuration
 	cfgMgr, err := config.NewManager(configPath)
 	if err != nil {
-		log.Fatalf("load config: %v", err)
+		return nil, nil, err
 	}
 	cfg := cfgMgr.Get()
 	log.Printf("config loaded: %d backends, %d agents", len(cfg.Backends), len(cfg.Agents))
@@ -37,15 +81,14 @@ func main() {
 	// Ensure data directory exists
 	dbDir := filepath.Dir(cfg.Audit.DBPath)
 	if err := os.MkdirAll(dbDir, 0755); err != nil {
-		log.Fatalf("create data dir %s: %v", dbDir, err)
+		return nil, nil, err
 	}
 
 	// Initialize audit logger
 	auditLog, err := audit.NewLogger(cfg.Audit.DBPath)
 	if err != nil {
-		log.Fatalf("init audit logger: %v", err)
+		return nil, nil, err
 	}
-	defer auditLog.Close()
 	auditLog.StartPurgeLoop(cfg.Audit.RetentionDays)
 
 	// Initialize components
@@ -80,7 +123,6 @@ func main() {
 	// FIFO queue
 	queue := pipeline.NewFIFOQueue(cfgMgr, forwarder.Forward)
 	queue.Start()
-	defer queue.Stop()
 
 	// MCP proxy handler
 	mcpHandler := proxy.NewHandler(cfgMgr, forwarder, sessions, stages, queue, auditLog)
@@ -102,26 +144,10 @@ func main() {
 		WriteTimeout: cfg.Server.WriteTimeout,
 	}
 
-	// Graceful shutdown
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
-
-	go func() {
-		log.Printf("listening on %s", cfg.Server.Listen)
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("server error: %v", err)
-		}
-	}()
-
-	<-ctx.Done()
-	log.Println("shutting down...")
-
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), cfg.Server.ReadTimeout)
-	defer cancel()
-
-	if err := server.Shutdown(shutdownCtx); err != nil {
-		log.Printf("shutdown error: %v", err)
+	cleanup := func() {
+		queue.Stop()
+		auditLog.Close()
 	}
 
-	log.Println("aegis stopped")
+	return server, cleanup, nil
 }
