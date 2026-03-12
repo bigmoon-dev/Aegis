@@ -35,7 +35,7 @@ type Store struct {
 	pending  map[string]*PendingRequest
 }
 
-// Notifier sends approval notifications (e.g., Feishu webhook).
+// Notifier sends approval notifications (e.g., Feishu webhook, generic webhook).
 type Notifier interface {
 	Notify(req *PendingRequest, callbackBaseURL string, token string) error
 }

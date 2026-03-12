@@ -62,6 +62,8 @@ func main() {
 	}
 	var notifier approval.Notifier
 	switch len(notifiers) {
+	case 0:
+		// No notifier configured; approval still works via management API
 	case 1:
 		notifier = notifiers[0]
 	default:
