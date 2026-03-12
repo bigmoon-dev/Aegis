@@ -154,8 +154,8 @@ agents:
 ```
 
 当 Agent 调用需要审批的工具时：
-1. Aegis 向飞书/Lark 发送交互式卡片通知
-2. 卡片显示 Agent 名称、工具名和参数预览
+1. Aegis 通过已配置的 Webhook 渠道（飞书/Lark、通用 Webhook 或两者同时）发送通知
+2. 通知显示 Agent 名称、工具名和参数预览
 3. 人工点击 **Approve** 或 **Reject**
 4. 批准后请求进入 FIFO 队列等待执行
 5. 被拒绝或超时（默认 10 分钟）后，Agent 收到错误（`-32004`）
@@ -166,9 +166,13 @@ agents:
 approval:
   feishu:
     webhook_url: "https://open.feishu.cn/open-apis/bot/v2/hook/your-token"
+  generic:
+    webhook_url: "https://your-webhook.example.com/aegis"  # Slack、Discord、自建系统等
   timeout: 600s                          # 10 分钟，超时自动拒绝
   callback_base_url: "http://your-server:18070"  # 审批者浏览器必须能访问此地址
 ```
+
+可以配置飞书、通用 Webhook 或两者同时。两者都配置时，通知会同时发送到两个渠道。通用 Webhook 接收标准 JSON POST，包含 `approve_url` 和 `reject_url` 字段 — 完整载荷格式请参阅 README。
 
 同时配置了频率限制和审批的工具会显示组合标注：
 
@@ -364,6 +368,7 @@ agents:
 | `queue.{id}.bypass_tools` | []string | 跳过队列的工具 |
 | `queue.{id}.global_rate_limits.{tool}` | object | `{ window: duration, max_count: int }` |
 | `approval.feishu.webhook_url` | string | 飞书/Lark Webhook URL |
+| `approval.generic.webhook_url` | string | 通用 Webhook URL（Slack、Discord、自建系统等） |
 | `approval.timeout` | duration | 自动拒绝超时时间 |
 | `approval.callback_base_url` | string | 审批回调按钮的基础 URL |
 | `audit.db_path` | string | SQLite 数据库文件路径 |

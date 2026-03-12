@@ -45,7 +45,7 @@ Aegis MCP 将软规则转化为 **MCP 协议层的程序化硬约束**。无论 
 
 - **两级频率限制** — 单 Agent 滑动窗口限制 *和* 跨 Agent 全局限制。多个 Agent 共享同一账号？全局限制防止累积超频。
 
-- **人工审批流程** — 破坏性操作（发布、删除）需通过飞书/Lark Webhook 通知获取人工审批，回调 URL 采用 HMAC 签名。可配置超时时间，超时自动拒绝。
+- **人工审批流程** — 破坏性操作（发布、删除）需通过 Webhook 通知获取人工审批，回调 URL 采用 HMAC 签名。支持飞书/Lark、通用 Webhook（Slack、Discord、自建系统等），可同时启用。可配置超时时间，超时自动拒绝。
 
 - **FIFO 执行队列** — 按后端串行执行，操作间随机延迟（1-10 分钟，可配置），模拟人类操作节奏。只读工具可配置跳过队列。
 
@@ -177,6 +177,8 @@ agents:
 approval:
   feishu:
     webhook_url: ""                     # 你的飞书 Webhook URL
+  generic:
+    webhook_url: ""                     # 任意 Webhook URL（Slack、Discord、自建系统等）
   timeout: 600s
   callback_base_url: "http://your-server:18070"
 
@@ -233,6 +235,25 @@ POST /api/v1/config/reload             # 热更新配置
 | HMAC 签名的审批回调 | 防止通过 URL 猜测进行未授权审批 |
 | 全程 UTC 时间 | 避免夏令时切换导致限流窗口偏差 |
 | 全局 + 单 Agent 频率限制 | 多 Agent 共享账号的累积频率控制 |
+
+## 通用 Webhook 载荷
+
+配置 `approval.generic.webhook_url` 后，Aegis 会发送 `Content-Type: application/json` 的 POST 请求：
+
+```json
+{
+  "event": "approval_request",
+  "id": "request-uuid",
+  "agent_id": "production-agent",
+  "tool_name": "publish",
+  "arguments": "{...}",
+  "created_at": "2026-03-12T10:00:00Z",
+  "approve_url": "http://aegis:18070/callback/approval?id=xxx&action=approve&token=xxx",
+  "reject_url": "http://aegis:18070/callback/approval?id=xxx&action=reject&token=xxx"
+}
+```
+
+批准或拒绝只需对相应 URL 发送 GET 请求。飞书和通用 Webhook 可同时配置，两个渠道都会收到通知。
 
 ## 环境要求
 

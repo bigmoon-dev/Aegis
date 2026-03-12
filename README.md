@@ -45,7 +45,7 @@ Unlike SDK-based approaches that require code changes in each agent, Aegis MCP w
 
 - **Two-Level Rate Limiting** — Per-agent sliding window limits *and* global cross-agent limits. All agents sharing one account? Global limits prevent cumulative overuse.
 
-- **Human Approval Workflows** — Destructive operations (publishing, deleting) require human approval via Feishu/Lark webhook notifications with HMAC-signed callback URLs. Configurable timeout with auto-reject.
+- **Human Approval Workflows** — Destructive operations (publishing, deleting) require human approval via webhook notifications with HMAC-signed callback URLs. Supports Feishu/Lark, generic webhooks (Slack, Discord, custom systems), or both simultaneously. Configurable timeout with auto-reject.
 
 - **FIFO Execution Queue** — Per-backend serialized execution with randomized delays (1-10 min configurable) between operations. Mimics human interaction patterns. Bypass list for read-only tools.
 
@@ -177,6 +177,8 @@ agents:
 approval:
   feishu:
     webhook_url: ""                     # Your Feishu/Lark webhook URL
+  generic:
+    webhook_url: ""                     # Any webhook URL (Slack, Discord, custom, etc.)
   timeout: 600s
   callback_base_url: "http://your-server:18070"
 
@@ -233,6 +235,25 @@ POST /api/v1/config/reload             # Hot reload configuration
 | HMAC-signed approval callbacks | Prevent unauthorized approval via URL guessing |
 | UTC everywhere | Avoid DST issues in rate limit window calculations |
 | Global + per-agent rate limits | Multi-agent cumulative frequency control for shared accounts |
+
+## Generic Webhook Payload
+
+When `approval.generic.webhook_url` is configured, Aegis sends a POST request with `Content-Type: application/json`:
+
+```json
+{
+  "event": "approval_request",
+  "id": "request-uuid",
+  "agent_id": "production-agent",
+  "tool_name": "publish",
+  "arguments": "{...}",
+  "created_at": "2026-03-12T10:00:00Z",
+  "approve_url": "http://aegis:18070/callback/approval?id=xxx&action=approve&token=xxx",
+  "reject_url": "http://aegis:18070/callback/approval?id=xxx&action=reject&token=xxx"
+}
+```
+
+To approve or reject, make a GET request to the corresponding URL. Both Feishu and generic webhook can be configured simultaneously — both will be notified.
 
 ## Requirements
 

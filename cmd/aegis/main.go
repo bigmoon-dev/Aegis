@@ -53,9 +53,19 @@ func main() {
 	sessions := proxy.NewSessionManager()
 
 	// Approval system
-	var notifier approval.Notifier
+	var notifiers []approval.Notifier
 	if cfg.Approval.Feishu.WebhookURL != "" {
-		notifier = approval.NewFeishuNotifier(cfg.Approval.Feishu.WebhookURL)
+		notifiers = append(notifiers, approval.NewFeishuNotifier(cfg.Approval.Feishu.WebhookURL))
+	}
+	if cfg.Approval.Generic.WebhookURL != "" {
+		notifiers = append(notifiers, approval.NewGenericWebhookNotifier(cfg.Approval.Generic.WebhookURL))
+	}
+	var notifier approval.Notifier
+	switch len(notifiers) {
+	case 1:
+		notifier = notifiers[0]
+	default:
+		notifier = approval.NewMultiNotifier(notifiers...)
 	}
 	approvalStore := approval.NewStore(cfgMgr, notifier)
 

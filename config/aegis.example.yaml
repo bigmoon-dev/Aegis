@@ -58,6 +58,8 @@ agents:
 approval:
   feishu:
     webhook_url: ""                     # Your Feishu/Lark webhook URL
+  generic:
+    webhook_url: ""                     # Any webhook URL (Slack, Discord, custom, etc.)
   timeout: 600s
   callback_base_url: "http://your-server:18070"
 

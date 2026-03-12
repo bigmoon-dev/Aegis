@@ -154,8 +154,8 @@ agents:
 ```
 
 When an agent calls an approval-required tool:
-1. Aegis sends a notification to Feishu/Lark with an interactive card
-2. The card shows the agent name, tool name, and argument preview
+1. Aegis sends a notification via configured webhook channels (Feishu/Lark, generic webhook, or both)
+2. The notification shows the agent name, tool name, and argument preview
 3. A human clicks **Approve** or **Reject**
 4. If approved, the request enters the FIFO queue for execution
 5. If rejected or timed out (default 10 minutes), the agent receives an error (`-32004`)
@@ -166,9 +166,13 @@ Configure the approval system:
 approval:
   feishu:
     webhook_url: "https://open.feishu.cn/open-apis/bot/v2/hook/your-token"
+  generic:
+    webhook_url: "https://your-webhook.example.com/aegis"  # Slack, Discord, custom, etc.
   timeout: 600s                          # 10 minutes, auto-reject after this
   callback_base_url: "http://your-server:18070"  # Must be reachable by the approver's browser
 ```
+
+You can configure Feishu, generic webhook, or both. When both are configured, notifications are sent to both channels simultaneously. The generic webhook receives a standard JSON POST with `approve_url` and `reject_url` fields — see the README for the full payload format.
 
 Tools with both rate limits and approval show combined annotations:
 
@@ -364,6 +368,7 @@ agents:
 | `queue.{id}.bypass_tools` | []string | Tools that skip the queue |
 | `queue.{id}.global_rate_limits.{tool}` | object | `{ window: duration, max_count: int }` |
 | `approval.feishu.webhook_url` | string | Feishu/Lark webhook URL |
+| `approval.generic.webhook_url` | string | Generic webhook URL (Slack, Discord, custom) |
 | `approval.timeout` | duration | Auto-reject timeout |
 | `approval.callback_base_url` | string | Base URL for approval callback buttons |
 | `audit.db_path` | string | SQLite database file path |

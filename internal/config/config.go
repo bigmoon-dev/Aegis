@@ -58,13 +58,19 @@ type RateLimitConfig struct {
 
 // ApprovalConfig holds approval system settings.
 type ApprovalConfig struct {
-	Feishu          FeishuConfig  `yaml:"feishu"`
-	Timeout         time.Duration `yaml:"timeout"`
-	CallbackBaseURL string        `yaml:"callback_base_url"`
+	Feishu          FeishuConfig          `yaml:"feishu"`
+	Generic         GenericWebhookConfig  `yaml:"generic"`
+	Timeout         time.Duration         `yaml:"timeout"`
+	CallbackBaseURL string                `yaml:"callback_base_url"`
 }
 
 // FeishuConfig holds Feishu webhook settings.
 type FeishuConfig struct {
+	WebhookURL string `yaml:"webhook_url"`
+}
+
+// GenericWebhookConfig holds generic webhook settings.
+type GenericWebhookConfig struct {
 	WebhookURL string `yaml:"webhook_url"`
 }
 
