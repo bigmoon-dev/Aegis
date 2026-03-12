@@ -37,6 +37,7 @@ type FIFOQueue struct {
 	queues   map[string]chan *queueItem // per-backend channels
 	lengths  map[string]int            // current queue length per backend
 	stopChs  map[string]chan struct{}   // per-backend stop signals
+	stopped  bool                      // prevents double-close
 	wg       sync.WaitGroup            // tracks active workers
 }
 
@@ -60,6 +61,7 @@ func (q *FIFOQueue) Start() {
 		ch := make(chan *queueItem, qCfg.MaxPending)
 		stopCh := make(chan struct{})
 		q.queues[backendID] = ch
+		q.lengths[backendID] = 0
 		q.stopChs[backendID] = stopCh
 		q.wg.Add(1)
 		go q.worker(backendID, ch, stopCh)
@@ -89,6 +91,8 @@ func (q *FIFOQueue) Enqueue(ctx context.Context, req *model.PipelineRequest) (*m
 		return resp, 0, err
 	}
 
+	stopCh := q.stopChs[req.BackendID]
+
 	q.mu.Lock()
 	pos := q.lengths[req.BackendID] + 1
 	qCfg := cfg.Queue[req.BackendID]
@@ -117,6 +121,11 @@ func (q *FIFOQueue) Enqueue(ctx context.Context, req *model.PipelineRequest) (*m
 	select {
 	case ch <- item:
 		log.Printf("[queue] enqueued %s for %s (position %d)", req.ToolName, req.BackendID, pos)
+	case <-stopCh:
+		q.mu.Lock()
+		q.lengths[req.BackendID]--
+		q.mu.Unlock()
+		return nil, pos, fmt.Errorf("queue shutting down")
 	case <-ctx.Done():
 		q.mu.Lock()
 		q.lengths[req.BackendID]--
@@ -127,6 +136,8 @@ func (q *FIFOQueue) Enqueue(ctx context.Context, req *model.PipelineRequest) (*m
 	select {
 	case res := <-item.result:
 		return res.resp, pos, res.err
+	case <-stopCh:
+		return nil, pos, fmt.Errorf("queue shutting down")
 	case <-ctx.Done():
 		return nil, pos, ctx.Err()
 	}
@@ -231,6 +242,14 @@ func (q *FIFOQueue) drainChannel(backendID string, ch chan *queueItem) {
 
 // Stop gracefully shuts down all queue workers and waits for them to finish.
 func (q *FIFOQueue) Stop() {
+	q.mu.Lock()
+	if q.stopped {
+		q.mu.Unlock()
+		return
+	}
+	q.stopped = true
+	q.mu.Unlock()
+
 	for backendID, stopCh := range q.stopChs {
 		log.Printf("[queue] stopping worker for backend %q", backendID)
 		close(stopCh)

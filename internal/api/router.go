@@ -113,7 +113,7 @@ func (r *Router) agentRateLimits(w http.ResponseWriter, req *http.Request) {
 	// Per-agent rate limits
 	for _, bc := range agentCfg.Backends {
 		for toolName, rl := range bc.RateLimits {
-			current := r.auditLog.CountCalls(agentID, toolName, time.Now().Add(-rl.Window))
+			current, _ := r.auditLog.CountCalls(agentID, toolName, time.Now().Add(-rl.Window))
 			result = append(result, rlStatus{
 				Tool:     toolName,
 				Window:   rl.Window.String(),
@@ -127,7 +127,7 @@ func (r *Router) agentRateLimits(w http.ResponseWriter, req *http.Request) {
 	// Global rate limits
 	for _, qCfg := range cfg.Queue {
 		for toolName, gl := range qCfg.GlobalRateLimits {
-			current := r.auditLog.CountCallsGlobal(toolName, time.Now().Add(-gl.Window))
+			current, _ := r.auditLog.CountCallsGlobal(toolName, time.Now().Add(-gl.Window))
 			result = append(result, rlStatus{
 				Tool:     toolName,
 				Window:   gl.Window.String(),

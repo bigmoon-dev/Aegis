@@ -59,29 +59,29 @@ func (l *Logger) RecordCall(agentID, toolName string) {
 }
 
 // CountCalls returns the number of calls by an agent for a tool since the given time.
-func (l *Logger) CountCalls(agentID, toolName string, since time.Time) int {
+// Returns an error if the DB query fails (callers should fail-closed).
+func (l *Logger) CountCalls(agentID, toolName string, since time.Time) (int, error) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	var count int
 	err := l.db.QueryRow(countRateLimitSQL, agentID, toolName, since.UTC().Format("2006-01-02 15:04:05")).Scan(&count)
 	if err != nil {
-		log.Printf("[audit] count rate limit error: %v", err)
-		return 0
+		return 0, fmt.Errorf("count rate limit for %s/%s: %w", agentID, toolName, err)
 	}
-	return count
+	return count, nil
 }
 
 // CountCallsGlobal returns the number of calls for a tool across all agents since the given time.
-func (l *Logger) CountCallsGlobal(toolName string, since time.Time) int {
+// Returns an error if the DB query fails (callers should fail-closed).
+func (l *Logger) CountCallsGlobal(toolName string, since time.Time) (int, error) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	var count int
 	err := l.db.QueryRow(countRateLimitGlobalSQL, toolName, since.UTC().Format("2006-01-02 15:04:05")).Scan(&count)
 	if err != nil {
-		log.Printf("[audit] count global rate limit error: %v", err)
-		return 0
+		return 0, fmt.Errorf("count global rate limit for %s: %w", toolName, err)
 	}
-	return count
+	return count, nil
 }
 
 // AuditRow represents a row from the audit log for API queries.

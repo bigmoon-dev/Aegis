@@ -30,7 +30,15 @@ func (r *RateLimiter) Process(_ context.Context, req *model.PipelineRequest) (*m
 	if qCfg, ok := cfg.Queue[req.BackendID]; ok {
 		if gl, ok := qCfg.GlobalRateLimits[req.ToolName]; ok {
 			since := time.Now().Add(-gl.Window)
-			count := r.logger.CountCallsGlobal(req.ToolName, since)
+			count, err := r.logger.CountCallsGlobal(req.ToolName, since)
+			if err != nil {
+				log.Printf("[rate_limiter] global: DB error (fail-closed): %v", err)
+				return &model.StageResult{
+					Verdict:      model.VerdictDeny,
+					ErrorCode:    model.ErrCodeRateLimited,
+					ErrorMessage: "rate limiter unavailable, please retry later",
+				}, nil
+			}
 			if count >= gl.MaxCount {
 				msg := fmt.Sprintf("global rate limit exceeded for %s: %d/%d calls in %s window",
 					req.ToolName, count, gl.MaxCount, gl.Window)
@@ -60,7 +68,15 @@ func (r *RateLimiter) Process(_ context.Context, req *model.PipelineRequest) (*m
 	}
 
 	since := time.Now().Add(-rl.Window)
-	count := r.logger.CountCalls(req.AgentID, req.ToolName, since)
+	count, err := r.logger.CountCalls(req.AgentID, req.ToolName, since)
+	if err != nil {
+		log.Printf("[rate_limiter] agent %q: DB error (fail-closed): %v", req.AgentID, err)
+		return &model.StageResult{
+			Verdict:      model.VerdictDeny,
+			ErrorCode:    model.ErrCodeRateLimited,
+			ErrorMessage: "rate limiter unavailable, please retry later",
+		}, nil
+	}
 
 	if count >= rl.MaxCount {
 		msg := fmt.Sprintf("rate limit exceeded for %s: %d/%d calls in %s window",
