@@ -17,6 +17,7 @@ type ServerConfig struct {
 	Listen       string        `yaml:"listen"`
 	ReadTimeout  time.Duration `yaml:"read_timeout"`
 	WriteTimeout time.Duration `yaml:"write_timeout"`
+	APIToken     string        `yaml:"api_token"`
 }
 
 // BackendConfig defines an upstream MCP server.

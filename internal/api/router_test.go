@@ -75,6 +75,68 @@ func testRouter(t *testing.T) (*Router, *audit.Logger) {
 	return r, logger
 }
 
+func TestRouter_APIToken_Unauthorized(t *testing.T) {
+	cfg := &config.Config{
+		Server: config.ServerConfig{APIToken: "secret-token-123"},
+		Backends: map[string]config.BackendConfig{
+			"demo": {URL: "http://127.0.0.1:9100/mcp", Timeout: 5 * time.Second},
+		},
+		Agents: map[string]config.AgentConfig{
+			"agent-a": {
+				DisplayName: "Agent A",
+				Backends:    map[string]config.AgentBackendConfig{"demo": {Allowed: true}},
+			},
+		},
+		Audit: config.AuditConfig{DBPath: filepath.Join(t.TempDir(), "test.db")},
+	}
+	cfgMgr := config.NewManagerFromConfig(cfg)
+	logger, _ := audit.NewLogger(cfg.Audit.DBPath)
+	t.Cleanup(func() { logger.Close() })
+	queue := pipeline.NewFIFOQueue(cfgMgr, nil)
+	queue.Start()
+	t.Cleanup(func() { queue.Stop() })
+	store := approval.NewStore(cfgMgr, nil)
+	r := NewRouter(cfgMgr, queue, store, logger)
+
+	// No token → 401
+	req := httptest.NewRequest("GET", "/api/v1/queue/status", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("expected 401 without token, got %d", w.Code)
+	}
+
+	// Wrong token → 401
+	req = httptest.NewRequest("GET", "/api/v1/queue/status", nil)
+	req.Header.Set("Authorization", "Bearer wrong-token")
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("expected 401 with wrong token, got %d", w.Code)
+	}
+
+	// Correct token → 200
+	req = httptest.NewRequest("GET", "/api/v1/queue/status", nil)
+	req.Header.Set("Authorization", "Bearer secret-token-123")
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200 with correct token, got %d", w.Code)
+	}
+}
+
+func TestRouter_APIToken_NotConfigured(t *testing.T) {
+	// No api_token set → all requests allowed (backwards compatible)
+	r, _ := testRouter(t)
+
+	req := httptest.NewRequest("GET", "/api/v1/queue/status", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200 without api_token config, got %d", w.Code)
+	}
+}
+
 func TestRouter_QueueStatus(t *testing.T) {
 	r, _ := testRouter(t)
 

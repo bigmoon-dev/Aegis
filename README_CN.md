@@ -161,6 +161,7 @@ server:
   listen: ":18070"
   read_timeout: 300s
   write_timeout: 300s
+  # api_token: "your-secret-token"   # 保护 /api/v1/ 端点（可选）
 
 backends:
   my-tools:
@@ -229,6 +230,8 @@ audit:
 
 ## 管理 API
 
+配置 `server.api_token` 后，所有 `/api/v1/` 端点需要 `Authorization: Bearer <token>` 请求头。未配置时 API 开放访问（适用于仅监听 localhost 的部署）。
+
 ```
 GET  /health                           # 服务 + 后端健康检查
 GET  /api/v1/queue/status              # 各后端的队列状态
@@ -296,6 +299,14 @@ CGO_ENABLED=1 go test -cover ./internal/...
 ```
 
 测试使用临时 SQLite 数据库和内存配置，无需外部依赖。CI 在每次 push 和 PR 时自动运行 `go test -race`。
+
+## 安全
+
+- **管理 API 认证**：在配置中设置 `server.api_token`，所有 `/api/v1/` 端点将要求 `Authorization: Bearer <token>`。未设置时，任何能访问端口的人都可以批准操作、查看审计日志和重载配置。**生产环境务必设置。**
+- **审批回调保护**：每个请求使用 HMAC-SHA256 签名 token（启动时随机生成 32 字节密钥），使用常量时间比较验证。
+- **请求大小限制**：入站请求 1 MB，后端响应 10 MB。
+- **TLS**：Aegis 监听 HTTP 明文。生产环境建议使用反向代理（nginx、Caddy）或仅绑定 localhost。
+- **HMAC 密钥生命周期**：签名密钥在启动时内存中生成，重启 Aegis 会使所有待审批 token 失效。
 
 ## 环境要求
 

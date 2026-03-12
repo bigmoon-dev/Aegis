@@ -1,6 +1,7 @@
 package api
 
 import (
+	"crypto/subtle"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -46,6 +47,15 @@ func NewRouter(
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	if token := r.cfgMgr.Get().Server.APIToken; token != "" {
+		auth := req.Header.Get("Authorization")
+		const prefix = "Bearer "
+		if !strings.HasPrefix(auth, prefix) ||
+			subtle.ConstantTimeCompare([]byte(auth[len(prefix):]), []byte(token)) != 1 {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+	}
 	r.mux.ServeHTTP(w, req)
 }
 

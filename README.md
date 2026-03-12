@@ -161,6 +161,7 @@ server:
   listen: ":18070"
   read_timeout: 300s
   write_timeout: 300s
+  # api_token: "your-secret-token"   # Protect /api/v1/ endpoints
 
 backends:
   my-tools:
@@ -229,6 +230,8 @@ Only successful calls count against rate limits (failed calls don't consume quot
 
 ## Management API
 
+When `server.api_token` is set, all `/api/v1/` endpoints require `Authorization: Bearer <token>`. When not set, the API is open (suitable for localhost-only deployments).
+
 ```
 GET  /health                           # Service + backend health
 GET  /api/v1/queue/status              # Pending items per backend
@@ -296,6 +299,14 @@ CGO_ENABLED=1 go test -cover ./internal/...
 ```
 
 Tests use temporary SQLite databases and in-memory configs — no external dependencies required. CI runs `go test -race` on every push and pull request.
+
+## Security
+
+- **Management API authentication**: Set `server.api_token` in your config to require `Authorization: Bearer <token>` on all `/api/v1/` endpoints. Without this, anyone who can reach the port can approve operations, view audit logs, and reload config. **Always set this in production.**
+- **Approval callbacks**: Protected by per-request HMAC-SHA256 tokens (generated from a random 32-byte key at startup). Tokens are validated with constant-time comparison.
+- **Request size limits**: Incoming requests are capped at 1 MB, backend responses at 10 MB.
+- **TLS**: Aegis listens on plain HTTP. For production, place it behind a reverse proxy (nginx, Caddy) or bind to localhost only.
+- **HMAC key lifecycle**: The HMAC signing key is generated in-memory at startup. Restarting Aegis invalidates all pending approval tokens.
 
 ## Requirements
 
