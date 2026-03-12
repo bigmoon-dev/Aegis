@@ -21,6 +21,24 @@ func testStore(notifier Notifier) *Store {
 	return NewStore(mgr, notifier)
 }
 
+// waitForPending polls ListPending until the expected count is reached or timeout.
+func waitForPending(t *testing.T, s *Store, expected int) []*PendingRequest {
+	t.Helper()
+	deadline := time.After(2 * time.Second)
+	for {
+		pending := s.ListPending()
+		if len(pending) == expected {
+			return pending
+		}
+		select {
+		case <-deadline:
+			t.Fatalf("expected %d pending, got %d", expected, len(s.ListPending()))
+			return nil
+		case <-time.After(10 * time.Millisecond):
+		}
+	}
+}
+
 func TestStore_GenerateAndValidateToken(t *testing.T) {
 	s := testStore(nil)
 
@@ -78,12 +96,7 @@ func TestStore_RequestAndApprove(t *testing.T) {
 	}()
 
 	// Wait for the request to be registered
-	time.Sleep(50 * time.Millisecond)
-
-	pending := s.ListPending()
-	if len(pending) != 1 {
-		t.Fatalf("expected 1 pending, got %d", len(pending))
-	}
+	pending := waitForPending(t, s, 1)
 
 	ok := s.Resolve(pending[0].ID, true)
 	if !ok {
@@ -115,12 +128,7 @@ func TestStore_RequestAndReject(t *testing.T) {
 		done <- approved
 	}()
 
-	time.Sleep(50 * time.Millisecond)
-
-	pending := s.ListPending()
-	if len(pending) != 1 {
-		t.Fatalf("expected 1 pending, got %d", len(pending))
-	}
+	pending := waitForPending(t, s, 1)
 
 	s.Resolve(pending[0].ID, false)
 
@@ -190,13 +198,12 @@ func TestStore_ResolveNonExistent(t *testing.T) {
 func TestStore_ResolveAfterTimeout(t *testing.T) {
 	cfg := &config.Config{
 		Approval: config.ApprovalConfig{
-			Timeout: 50 * time.Millisecond,
+			Timeout: 200 * time.Millisecond,
 		},
 	}
 	mgr := config.NewManagerFromConfig(cfg)
 	s := NewStore(mgr, nil)
 
-	var reqID string
 	done := make(chan struct{})
 	go func() {
 		s.RequestApproval(context.Background(), &model.PipelineRequest{
@@ -206,21 +213,29 @@ func TestStore_ResolveAfterTimeout(t *testing.T) {
 		close(done)
 	}()
 
-	time.Sleep(20 * time.Millisecond)
-	pending := s.ListPending()
-	if len(pending) > 0 {
-		reqID = pending[0].ID
+	// Poll until the request is registered
+	var reqID string
+	deadline := time.After(2 * time.Second)
+	for {
+		pending := s.ListPending()
+		if len(pending) > 0 {
+			reqID = pending[0].ID
+			break
+		}
+		select {
+		case <-deadline:
+			t.Fatal("timed out waiting for request to be registered")
+		case <-time.After(5 * time.Millisecond):
+		}
 	}
 
-	// Wait for timeout
+	// Wait for the approval timeout to expire
 	<-done
 
 	// Resolve after timeout should return false (already cleaned up)
-	if reqID != "" {
-		ok := s.Resolve(reqID, true)
-		if ok {
-			t.Error("expected false for already-timed-out request")
-		}
+	ok := s.Resolve(reqID, true)
+	if ok {
+		t.Error("expected false for already-timed-out request")
 	}
 }
 
@@ -235,8 +250,11 @@ func TestStore_ListPending_Empty(t *testing.T) {
 func TestStore_ListPending_Multiple(t *testing.T) {
 	s := testStore(nil)
 
+	var wg sync.WaitGroup
 	for i := 0; i < 3; i++ {
+		wg.Add(1)
 		go func() {
+			defer wg.Done()
 			s.RequestApproval(context.Background(), &model.PipelineRequest{
 				AgentID:  "agent-a",
 				ToolName: "publish",
@@ -244,7 +262,19 @@ func TestStore_ListPending_Multiple(t *testing.T) {
 		}()
 	}
 
-	time.Sleep(50 * time.Millisecond)
+	// Poll until all 3 are registered
+	deadline := time.After(2 * time.Second)
+	for {
+		pending := s.ListPending()
+		if len(pending) == 3 {
+			break
+		}
+		select {
+		case <-deadline:
+			t.Fatalf("expected 3 pending, got %d", len(s.ListPending()))
+		case <-time.After(10 * time.Millisecond):
+		}
+	}
 
 	pending := s.ListPending()
 	if len(pending) != 3 {
@@ -255,6 +285,9 @@ func TestStore_ListPending_Multiple(t *testing.T) {
 	for _, p := range pending {
 		s.Resolve(p.ID, false)
 	}
+
+	// Wait for all goroutines to finish
+	wg.Wait()
 }
 
 // mockNotifier records calls for testing.
@@ -300,7 +333,19 @@ func TestStore_NotifiesDuringApproval(t *testing.T) {
 		})
 	}()
 
-	time.Sleep(50 * time.Millisecond)
+	// Poll until notification is sent
+	deadline := time.After(2 * time.Second)
+	for {
+		calls := n.getCalls()
+		if len(calls) == 1 {
+			break
+		}
+		select {
+		case <-deadline:
+			t.Fatalf("expected 1 notification call, got %d", len(n.getCalls()))
+		case <-time.After(10 * time.Millisecond):
+		}
+	}
 
 	calls := n.getCalls()
 	if len(calls) != 1 {

@@ -13,9 +13,10 @@ import (
 
 // Logger writes audit entries and rate limit records to SQLite.
 type Logger struct {
-	db     *sql.DB
-	mu     sync.RWMutex // RWMutex: RLock for reads, Lock for writes
-	stopCh chan struct{}
+	db        *sql.DB
+	mu        sync.RWMutex // RWMutex: RLock for reads, Lock for writes
+	stopCh    chan struct{}
+	closeOnce sync.Once
 }
 
 // NewLogger opens (or creates) the SQLite database at dbPath.
@@ -171,7 +172,8 @@ func (l *Logger) StartPurgeLoop(retentionDays int) {
 }
 
 // Close stops the purge loop and closes the database.
+// Safe to call multiple times.
 func (l *Logger) Close() error {
-	close(l.stopCh)
+	l.closeOnce.Do(func() { close(l.stopCh) })
 	return l.db.Close()
 }

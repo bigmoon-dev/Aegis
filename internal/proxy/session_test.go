@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"sync"
 	"testing"
 )
 
@@ -27,4 +28,25 @@ func TestSessionManager_GetSet(t *testing.T) {
 	if got := sm.Get("agent-b"); got != "" {
 		t.Errorf("expected empty string for agent-b, got %q", got)
 	}
+}
+
+func TestSessionManager_Concurrent(t *testing.T) {
+	sm := NewSessionManager()
+	var wg sync.WaitGroup
+
+	// Concurrent writes and reads should not race
+	for i := 0; i < 50; i++ {
+		wg.Add(2)
+		agent := "agent-" + string(rune('a'+i%5))
+		go func(id string) {
+			defer wg.Done()
+			sm.Set(id, "session-"+id)
+		}(agent)
+		go func(id string) {
+			defer wg.Done()
+			sm.Get(id)
+		}(agent)
+	}
+
+	wg.Wait()
 }

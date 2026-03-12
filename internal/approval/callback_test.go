@@ -25,11 +25,7 @@ func TestCallbackHandler_Approve(t *testing.T) {
 		done <- approved
 	}()
 
-	time.Sleep(50 * time.Millisecond)
-	pending := s.ListPending()
-	if len(pending) != 1 {
-		t.Fatalf("expected 1 pending, got %d", len(pending))
-	}
+	pending := waitForPending(t, s, 1)
 
 	reqID := pending[0].ID
 	token := s.GenerateToken(reqID)
@@ -68,11 +64,7 @@ func TestCallbackHandler_Reject(t *testing.T) {
 		done <- approved
 	}()
 
-	time.Sleep(50 * time.Millisecond)
-	pending := s.ListPending()
-	if len(pending) != 1 {
-		t.Fatalf("expected 1 pending, got %d", len(pending))
-	}
+	pending := waitForPending(t, s, 1)
 
 	reqID := pending[0].ID
 	token := s.GenerateToken(reqID)
@@ -195,18 +187,16 @@ func TestCallbackHandler_AlreadyResolved(t *testing.T) {
 		})
 	}()
 
-	time.Sleep(50 * time.Millisecond)
-	pending := s.ListPending()
-	if len(pending) != 1 {
-		t.Fatalf("expected 1 pending, got %d", len(pending))
-	}
+	pending := waitForPending(t, s, 1)
 
 	reqID := pending[0].ID
 	token := s.GenerateToken(reqID)
 
 	// Resolve it first via store
 	s.Resolve(reqID, true)
-	time.Sleep(10 * time.Millisecond)
+
+	// Wait for resolution to take effect (pending count goes to 0)
+	waitForPending(t, s, 0)
 
 	// Now try callback — should return 404
 	req := httptest.NewRequest("GET", "/callback/approval?id="+reqID+"&action=approve&token="+token, nil)

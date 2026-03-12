@@ -212,3 +212,33 @@ func TestForwarder_Forward_DefaultTimeout(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
+
+func TestForwarder_ForwardRaw_Non200(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"bad request"}`))
+	}))
+	defer srv.Close()
+
+	cfgMgr := config.NewManagerFromConfig(&config.Config{
+		Backends: map[string]config.BackendConfig{
+			"demo": {URL: srv.URL, Timeout: 5 * time.Second},
+		},
+	})
+
+	f := NewForwarder(cfgMgr)
+	input := []byte(`{"jsonrpc":"2.0","id":1,"method":"invalid"}`)
+
+	respBody, statusCode, _, err := f.ForwardRaw(context.Background(), "demo", input, "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// ForwardRaw passes through non-200 status codes (unlike Forward which errors)
+	if statusCode != 400 {
+		t.Errorf("expected status 400, got %d", statusCode)
+	}
+	if string(respBody) != `{"error":"bad request"}` {
+		t.Errorf("expected error body, got %s", string(respBody))
+	}
+}

@@ -361,3 +361,14 @@ func TestQueue_ConcurrentEnqueue(t *testing.T) {
 		t.Errorf("concurrent enqueue error: %v", err)
 	}
 }
+
+func TestQueue_DoubleStop(t *testing.T) {
+	cfg := queueConfig()
+	mgr := config.NewManagerFromConfig(cfg)
+	q := NewFIFOQueue(mgr, echoForward)
+	q.Start()
+
+	// Calling Stop twice should not panic
+	q.Stop()
+	q.Stop()
+}

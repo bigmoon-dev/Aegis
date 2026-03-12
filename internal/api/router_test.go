@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -235,24 +236,30 @@ func TestRouter_ApproveAndReject(t *testing.T) {
 		done <- approved
 	}()
 
-	time.Sleep(50 * time.Millisecond)
-
-	// Get pending list
-	req := httptest.NewRequest("GET", "/api/v1/approvals/pending", nil)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-
+	// Poll until the request is registered
+	deadline := time.After(2 * time.Second)
 	var pending []map[string]any
-	json.NewDecoder(w.Body).Decode(&pending)
-	if len(pending) != 1 {
-		t.Fatalf("expected 1 pending, got %d", len(pending))
+	for {
+		req := httptest.NewRequest("GET", "/api/v1/approvals/pending", nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		json.NewDecoder(w.Body).Decode(&pending)
+		if len(pending) == 1 {
+			break
+		}
+		pending = nil
+		select {
+		case <-deadline:
+			t.Fatal("timed out waiting for pending approval")
+		case <-time.After(10 * time.Millisecond):
+		}
 	}
 
 	id := pending[0]["id"].(string)
 
 	// Approve it
-	req = httptest.NewRequest("POST", "/api/v1/approvals/"+id+"/approve", nil)
-	w = httptest.NewRecorder()
+	req := httptest.NewRequest("POST", "/api/v1/approvals/"+id+"/approve", nil)
+	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
@@ -366,5 +373,53 @@ func TestRouter_ConfigReload_NoFilePath(t *testing.T) {
 
 	if w.Code != http.StatusInternalServerError {
 		t.Errorf("expected 500 (no config file), got %d", w.Code)
+	}
+}
+
+func TestRouter_ConfigReload_Success(t *testing.T) {
+	dir := t.TempDir()
+	cfgPath := filepath.Join(dir, "config.yaml")
+	cfgYAML := `
+backends:
+  demo:
+    url: "http://localhost:9100/mcp"
+agents:
+  test:
+    display_name: "Test"
+    backends:
+      demo:
+        allowed: true
+`
+	os.WriteFile(cfgPath, []byte(cfgYAML), 0644)
+
+	cfgMgr, err := config.NewManager(cfgPath)
+	if err != nil {
+		t.Fatalf("NewManager: %v", err)
+	}
+	logger, err := audit.NewLogger(filepath.Join(dir, "test.db"))
+	if err != nil {
+		t.Fatalf("NewLogger: %v", err)
+	}
+	t.Cleanup(func() { logger.Close() })
+
+	queue := pipeline.NewFIFOQueue(cfgMgr, nil)
+	queue.Start()
+	t.Cleanup(func() { queue.Stop() })
+
+	store := approval.NewStore(cfgMgr, nil)
+	r := NewRouter(cfgMgr, queue, store, logger)
+
+	req := httptest.NewRequest("POST", "/api/v1/config/reload", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d: %s", w.Code, w.Body.String())
+	}
+
+	var result map[string]string
+	json.NewDecoder(w.Body).Decode(&result)
+	if result["status"] != "ok" {
+		t.Errorf("expected status=ok, got %s", result["status"])
 	}
 }

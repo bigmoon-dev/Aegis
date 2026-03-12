@@ -96,6 +96,24 @@ func TestApprovalGate_UnknownBackend(t *testing.T) {
 	}
 }
 
+// waitForStorePending polls ListPending until the expected count is reached or timeout.
+func waitForStorePending(t *testing.T, store *approval.Store, expected int) []*approval.PendingRequest {
+	t.Helper()
+	deadline := time.After(2 * time.Second)
+	for {
+		pending := store.ListPending()
+		if len(pending) == expected {
+			return pending
+		}
+		select {
+		case <-deadline:
+			t.Fatalf("expected %d pending, got %d", expected, len(store.ListPending()))
+			return nil
+		case <-time.After(10 * time.Millisecond):
+		}
+	}
+}
+
 func TestApprovalGate_Approved(t *testing.T) {
 	cfg := &config.Config{
 		Agents: map[string]config.AgentConfig{
@@ -126,11 +144,7 @@ func TestApprovalGate_Approved(t *testing.T) {
 		done <- result
 	}()
 
-	time.Sleep(50 * time.Millisecond)
-	pending := store.ListPending()
-	if len(pending) != 1 {
-		t.Fatalf("expected 1 pending, got %d", len(pending))
-	}
+	pending := waitForStorePending(t, store, 1)
 	store.Resolve(pending[0].ID, true)
 
 	select {
@@ -173,11 +187,7 @@ func TestApprovalGate_Rejected(t *testing.T) {
 		done <- result
 	}()
 
-	time.Sleep(50 * time.Millisecond)
-	pending := store.ListPending()
-	if len(pending) != 1 {
-		t.Fatalf("expected 1 pending, got %d", len(pending))
-	}
+	pending := waitForStorePending(t, store, 1)
 	store.Resolve(pending[0].ID, false)
 
 	select {

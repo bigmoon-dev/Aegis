@@ -280,7 +280,7 @@ func TestNewManager_InvalidConfig(t *testing.T) {
 	dir := t.TempDir()
 	cfgPath := filepath.Join(dir, "config.yaml")
 	// Valid YAML but no backends → validation error
-	os.WriteFile(cfgPath, []byte(`server:\n  listen: ":8080"\n`), 0644)
+	os.WriteFile(cfgPath, []byte("server:\n  listen: \":8080\"\n"), 0644)
 
 	_, err := NewManager(cfgPath)
 	if err == nil {
