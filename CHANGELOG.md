@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [v0.1.7] - 2026-03-12
+
+### Fixed
+- Apply `gofmt -s` formatting across 6 files (Go Report Card: 0 issues)
+
 ## [v0.1.6] - 2026-03-12
 
 ### Added
@@ -70,7 +75,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Policy configuration guide (English + Chinese)
 - Bilingual documentation (README.md + README_CN.md)
 
-[Unreleased]: https://github.com/bigmoon-dev/Aegis/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/bigmoon-dev/Aegis/compare/v0.1.7...HEAD
+[v0.1.7]: https://github.com/bigmoon-dev/Aegis/compare/v0.1.6...v0.1.7
 [v0.1.6]: https://github.com/bigmoon-dev/Aegis/compare/v0.1.5...v0.1.6
 [v0.1.5]: https://github.com/bigmoon-dev/Aegis/compare/v0.1.4...v0.1.5
 [v0.1.4]: https://github.com/bigmoon-dev/Aegis/compare/v0.1.3...v0.1.4
