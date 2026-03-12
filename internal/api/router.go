@@ -3,6 +3,7 @@ package api
 import (
 	"crypto/subtle"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -204,7 +205,8 @@ func (r *Router) auditLogs(w http.ResponseWriter, req *http.Request) {
 
 	rows, err := r.auditLog.Query(limit, offset)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("[api] audit log query error: %v", err)
+		http.Error(w, "failed to query audit logs", http.StatusInternalServerError)
 		return
 	}
 	writeJSON(w, rows)
@@ -217,8 +219,9 @@ func (r *Router) configReload(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if err := r.cfgMgr.Reload(); err != nil {
+		log.Printf("[api] config reload error: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
-		writeJSON(w, map[string]string{"status": "error", "message": err.Error()})
+		writeJSON(w, map[string]string{"status": "error", "message": "failed to reload config"})
 		return
 	}
 

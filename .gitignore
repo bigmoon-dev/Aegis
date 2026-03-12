@@ -18,3 +18,4 @@ config/aegis.yaml
 # OS
 .DS_Store
 coverage.out
+c.out

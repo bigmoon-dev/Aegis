@@ -90,7 +90,7 @@ docker run --rm -v $(pwd)/config:/config ghcr.io/bigmoon-dev/aegis /config/aegis
 
 ### go install
 
-需要 Go 1.22+ 和 CGO (gcc)：
+需要 Go 1.24+ 和 CGO (gcc)：
 
 ```bash
 CGO_ENABLED=1 go install github.com/bigmoon-dev/aegis/cmd/aegis@latest
@@ -310,7 +310,7 @@ CGO_ENABLED=1 go test -cover ./internal/...
 
 ## 环境要求
 
-- Go 1.22+（需启用 CGO 以支持 SQLite）
+- Go 1.24+（需启用 CGO 以支持 SQLite）
 - 一个兼容 MCP 协议的工具服务器作为后端
 
 ## 许可证

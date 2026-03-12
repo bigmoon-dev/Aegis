@@ -46,6 +46,9 @@ func validate(cfg *Config) error {
 			q.DelayMax = 600 * time.Second
 			cfg.Queue[name] = q
 		}
+		if q.DelayMin > q.DelayMax {
+			return fmt.Errorf("queue %q: delay_min (%s) must not exceed delay_max (%s)", name, q.DelayMin, q.DelayMax)
+		}
 	}
 
 	for agentID, ac := range cfg.Agents {
