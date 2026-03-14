@@ -291,7 +291,9 @@ func TestInjectMCPServerExistingFile(t *testing.T) {
 		},
 	}
 	data, _ := json.MarshalIndent(existing, "", "  ")
-	os.WriteFile(configPath, data, 0644)
+	if err := os.WriteFile(configPath, data, 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	err := injectMCPServer(configPath, "new-server", "http://localhost:18070/agents/new/mcp", "baseUrl")
 	if err != nil {
@@ -331,7 +333,9 @@ func TestInjectMCPServerConflict(t *testing.T) {
 		},
 	}
 	data, _ := json.MarshalIndent(existing, "", "  ")
-	os.WriteFile(configPath, data, 0644)
+	if err := os.WriteFile(configPath, data, 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	err := injectMCPServer(configPath, "myserver", "http://localhost:18070/mcp", "url")
 	if err == nil {
@@ -354,7 +358,9 @@ func TestInjectMCPServerSkip(t *testing.T) {
 		},
 	}
 	data, _ := json.MarshalIndent(existing, "", "  ")
-	os.WriteFile(configPath, data, 0644)
+	if err := os.WriteFile(configPath, data, 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	err := injectMCPServer(configPath, "myserver", "http://localhost:18070/mcp", "url")
 	if err == nil {
