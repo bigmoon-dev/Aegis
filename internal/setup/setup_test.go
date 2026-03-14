@@ -29,14 +29,14 @@ func TestDiscoverTools(t *testing.T) {
 		switch req.Method {
 		case "initialize":
 			callCount++
-			json.NewEncoder(w).Encode(model.Response{
+			_ = json.NewEncoder(w).Encode(model.Response{
 				JSONRPC: "2.0",
 				ID:      req.ID,
 				Result:  json.RawMessage(`{"protocolVersion":"2024-11-05","capabilities":{}}`),
 			})
 		case "tools/list":
 			callCount++
-			json.NewEncoder(w).Encode(model.Response{
+			_ = json.NewEncoder(w).Encode(model.Response{
 				JSONRPC: "2.0",
 				ID:      req.ID,
 				Result: json.RawMessage(`{"tools":[
@@ -306,7 +306,9 @@ func TestInjectMCPServerExistingFile(t *testing.T) {
 	// Verify both entries exist
 	result, _ := os.ReadFile(configPath)
 	var parsed map[string]interface{}
-	json.Unmarshal(result, &parsed)
+	if err := json.Unmarshal(result, &parsed); err != nil {
+		t.Fatal(err)
+	}
 
 	servers := parsed["mcpServers"].(map[string]interface{})
 	if _, ok := servers["existing"]; !ok {

@@ -120,7 +120,7 @@ func sendNotification(client *http.Client, url string, notif *model.Notification
 		return fmt.Errorf("connection failed: %w", err)
 	}
 	defer httpResp.Body.Close()
-	io.ReadAll(httpResp.Body) // drain
+	_, _ = io.ReadAll(httpResp.Body) // drain
 
 	// Notifications may return 200 or 202, both are ok
 	if httpResp.StatusCode >= 300 {
