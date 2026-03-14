@@ -22,7 +22,9 @@ func TestInjectRealMcporterSkipSameURL(t *testing.T) {
     }
   }
 }`
-	os.WriteFile(configPath, []byte(existing), 0644)
+	if err := os.WriteFile(configPath, []byte(existing), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	err := injectMCPServer(configPath, "chatpaper",
 		"http://localhost:18070/agents/openclaw-chatpaper/mcp", "baseUrl")
@@ -47,7 +49,9 @@ func TestInjectRealMcporterConflictDifferentURL(t *testing.T) {
     }
   }
 }`
-	os.WriteFile(configPath, []byte(existing), 0644)
+	if err := os.WriteFile(configPath, []byte(existing), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	err := injectMCPServer(configPath, "chatpaper",
 		"http://localhost:18070/agents/new-agent/mcp", "baseUrl")
@@ -72,7 +76,9 @@ func TestInjectRealMcporterAddNewServer(t *testing.T) {
     }
   }
 }`
-	os.WriteFile(configPath, []byte(existing), 0644)
+	if err := os.WriteFile(configPath, []byte(existing), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	err := injectMCPServer(configPath, "xiaohongshu",
 		"http://localhost:18070/agents/openclaw-xhs/mcp", "baseUrl")
@@ -92,7 +98,9 @@ func TestInjectRealMcporterAddNewServer(t *testing.T) {
 	// Verify result has both servers
 	data, _ := os.ReadFile(configPath)
 	var parsed map[string]interface{}
-	json.Unmarshal(data, &parsed)
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		t.Fatal(err)
+	}
 	servers := parsed["mcpServers"].(map[string]interface{})
 
 	if len(servers) != 2 {
@@ -124,7 +132,9 @@ func TestInjectClaudeCodeFormat(t *testing.T) {
     }
   }
 }`
-	os.WriteFile(configPath, []byte(existing), 0644)
+	if err := os.WriteFile(configPath, []byte(existing), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	err := injectMCPServer(configPath, "aegis-chatpaper",
 		"http://localhost:18070/agents/claude-chatpaper/mcp", "url")
@@ -134,7 +144,9 @@ func TestInjectClaudeCodeFormat(t *testing.T) {
 
 	data, _ := os.ReadFile(configPath)
 	var parsed map[string]interface{}
-	json.Unmarshal(data, &parsed)
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		t.Fatal(err)
+	}
 	servers := parsed["mcpServers"].(map[string]interface{})
 
 	entry := servers["aegis-chatpaper"].(map[string]interface{})
