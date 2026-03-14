@@ -19,16 +19,25 @@ import (
 )
 
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "demo" {
-		runDemo()
-		return
+	subcmd := ""
+	if len(os.Args) > 1 {
+		subcmd = os.Args[1]
 	}
 
-	configPath := "config/aegis.yaml"
-	if len(os.Args) > 1 {
-		configPath = os.Args[1]
+	switch subcmd {
+	case "setup":
+		if err := runSetup(); err != nil {
+			log.Fatalf("setup: %v", err)
+		}
+	case "demo":
+		runDemo()
+	default:
+		configPath := "config/aegis.yaml"
+		if subcmd != "" {
+			configPath = subcmd
+		}
+		runServer(configPath)
 	}
-	runServer(configPath)
 }
 
 // runServer starts the Aegis proxy with the given config and blocks until
