@@ -119,6 +119,31 @@ make init-config
 
 将 MCP 客户端指向 `http://localhost:18070/agents/{agent-id}/mcp`，替代直接连接后端。
 
+### 交互式配置向导（推荐新用户使用）
+
+最快生成可用配置的方式：
+
+```bash
+./aegis setup
+# 或: npx aegis-mcp-proxy setup
+```
+
+向导会引导你完成：
+
+1. **后端地址** — 输入 MCP 服务器地址，Aegis 自动连接并发现可用工具
+2. **逐工具策略** — 根据工具名称智能推荐默认策略（只读工具不限制，发布/写入工具自动加限流 + 审批，危险工具默认禁止）
+3. **Agent 配置** — 自动检测已安装的 Agent，将 Aegis 代理地址注入其配置文件
+
+支持的 Agent：
+
+| Agent | 配置文件 | 检测方式 |
+|-------|---------|---------|
+| OpenClaw | `~/.openclaw/workspace/config/mcporter.json` | 自动检测 |
+| Claude Code | `~/.claude/mcp_servers.json` | 自动检测 |
+| 自定义 Agent | — | 手动配置 |
+
+向导在修改任何 Agent 配置前会自动创建 `.bak` 备份，写入后验证 JSON 格式。如果同一后端已有配置条目，会提示冲突处理。
+
 ### 交互式 Demo
 
 5 分钟体验 Aegis 全部功能，无需搭建后端。只需 Node.js：

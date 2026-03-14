@@ -119,6 +119,31 @@ make init-config
 
 Point your MCP client to `http://localhost:18070/agents/{agent-id}/mcp` instead of the backend directly.
 
+### Interactive Setup (Recommended for New Users)
+
+The quickest way to get a working configuration:
+
+```bash
+./aegis setup
+# or: npx aegis-mcp-proxy setup
+```
+
+The wizard walks you through:
+
+1. **Backend URL** — enter your MCP server address, Aegis connects and discovers available tools
+2. **Per-tool policies** — smart defaults based on tool names (read-only tools get unlimited access, write/publish tools get rate limits + approval, dangerous tools get denied)
+3. **Agent config** — auto-detects installed agents and injects the Aegis proxy URL into their config
+
+Supported agents:
+
+| Agent | Config File | Detection |
+|-------|------------|-----------|
+| OpenClaw | `~/.openclaw/workspace/config/mcporter.json` | Auto-detected |
+| Claude Code | `~/.claude/mcp_servers.json` | Auto-detected |
+| Custom | — | Manual setup |
+
+The wizard creates a `.bak` backup before modifying any agent config and validates JSON after writing. If an entry already exists for the same backend, it prompts for conflict resolution.
+
 ### Try the Interactive Demo
 
 Experience all Aegis features in 5 minutes — no backend setup required. Just needs Node.js:
