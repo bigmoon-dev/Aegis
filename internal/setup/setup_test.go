@@ -148,7 +148,7 @@ func TestGenerateConfig(t *testing.T) {
 	}
 	agent := AgentChoice{Adapter: &OpenClawAdapter{}, AgentID: "openclaw-chatpaper"}
 
-	err := GenerateConfig(backend, policies, agent, outputPath)
+	err := GenerateConfig(backend, policies, agent, ApprovalNotificationInput{}, outputPath)
 	if err != nil {
 		t.Fatalf("GenerateConfig: %v", err)
 	}
@@ -188,7 +188,7 @@ func TestGenerateConfigParseable(t *testing.T) {
 	}
 	agent := AgentChoice{Adapter: &CustomAdapter{}, AgentID: "test-agent"}
 
-	if err := GenerateConfig(backend, policies, agent, outputPath); err != nil {
+	if err := GenerateConfig(backend, policies, agent, ApprovalNotificationInput{}, outputPath); err != nil {
 		t.Fatalf("GenerateConfig: %v", err)
 	}
 
@@ -199,6 +199,93 @@ func TestGenerateConfigParseable(t *testing.T) {
 	}
 	if len(data) == 0 {
 		t.Fatal("empty output")
+	}
+}
+
+// --- GenerateConfig with approval notification tests ---
+
+func TestGenerateConfigWithApproval(t *testing.T) {
+	dir := t.TempDir()
+	outputPath := filepath.Join(dir, "config", "test.yaml")
+
+	backend := BackendInput{Name: "chatpaper", URL: "http://localhost:9200/mcp"}
+	policies := []ToolPolicy{
+		{Name: "search_papers", RateLimit: "20/1h", Queue: false},
+		{Name: "publish_result", RateLimit: "1/24h", Queue: true, QueueDelay: "30s-60s", Approval: true},
+	}
+	agent := AgentChoice{Adapter: &CustomAdapter{}, AgentID: "test-agent"}
+	approvalNotif := ApprovalNotificationInput{
+		FeishuWebhookURL:  "https://open.feishu.cn/open-apis/bot/v2/hook/test123",
+		GenericWebhookURL: "https://hooks.slack.com/services/test456",
+		CallbackBaseURL:   "http://192.168.1.100:18070",
+	}
+
+	err := GenerateConfig(backend, policies, agent, approvalNotif, outputPath)
+	if err != nil {
+		t.Fatalf("GenerateConfig: %v", err)
+	}
+
+	data, err := os.ReadFile(outputPath)
+	if err != nil {
+		t.Fatalf("read output: %v", err)
+	}
+
+	content := string(data)
+
+	// Verify approval config is present
+	checks := []string{
+		"open.feishu.cn",
+		"hooks.slack.com",
+		"192.168.1.100:18070",
+	}
+	for _, c := range checks {
+		if !strings.Contains(content, c) {
+			t.Errorf("output missing %q", c)
+		}
+	}
+}
+
+func TestGenerateConfigApprovalEmpty(t *testing.T) {
+	dir := t.TempDir()
+	outputPath := filepath.Join(dir, "aegis.yaml")
+
+	backend := BackendInput{Name: "test", URL: "http://localhost:8000/mcp"}
+	policies := []ToolPolicy{
+		{Name: "tool_a", RateLimit: "10/1h", Queue: true, QueueDelay: "5s-15s"},
+	}
+	agent := AgentChoice{Adapter: &CustomAdapter{}, AgentID: "test-agent"}
+
+	// Empty approval notification — no webhook URLs
+	if err := GenerateConfig(backend, policies, agent, ApprovalNotificationInput{}, outputPath); err != nil {
+		t.Fatalf("GenerateConfig: %v", err)
+	}
+
+	data, err := os.ReadFile(outputPath)
+	if err != nil {
+		t.Fatalf("read: %v", err)
+	}
+	content := string(data)
+
+	// Should not contain any webhook URLs
+	if strings.Contains(content, "feishu.cn") {
+		t.Error("should not contain feishu URL when not configured")
+	}
+	if strings.Contains(content, "slack.com") {
+		t.Error("should not contain slack URL when not configured")
+	}
+}
+
+// --- detectLocalIP test ---
+
+func TestDetectLocalIP(t *testing.T) {
+	ip := detectLocalIP()
+	if ip == "" {
+		t.Fatal("expected non-empty IP")
+	}
+	// Should be a valid IPv4 address
+	parts := strings.Split(ip, ".")
+	if len(parts) != 4 {
+		t.Errorf("expected IPv4 address, got %q", ip)
 	}
 }
 

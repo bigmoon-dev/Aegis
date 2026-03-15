@@ -104,23 +104,11 @@ func startServer(configPath string) (*http.Server, func(), error) {
 	forwarder := proxy.NewForwarder(cfgMgr)
 	sessions := proxy.NewSessionManager()
 
-	// Approval system
-	var notifiers []approval.Notifier
-	if cfg.Approval.Feishu.WebhookURL != "" {
-		notifiers = append(notifiers, approval.NewFeishuNotifier(cfg.Approval.Feishu.WebhookURL))
-	}
-	if cfg.Approval.Generic.WebhookURL != "" {
-		notifiers = append(notifiers, approval.NewGenericWebhookNotifier(cfg.Approval.Generic.WebhookURL))
-	}
-	var notifier approval.Notifier
-	switch len(notifiers) {
-	case 0:
-		// No notifier configured; approval still works via management API
-	case 1:
-		notifier = notifiers[0]
-	default:
-		notifier = approval.NewMultiNotifier(notifiers...)
-	}
+	// Approval system — notifiers read webhook URLs dynamically from config,
+	// so they are always created and will silently skip when URL is empty.
+	feishuNotifier := approval.NewFeishuNotifier(cfgMgr)
+	genericNotifier := approval.NewGenericWebhookNotifier(cfgMgr)
+	notifier := approval.NewMultiNotifier(feishuNotifier, genericNotifier)
 	approvalStore := approval.NewStore(cfgMgr, notifier)
 
 	// Pipeline stages

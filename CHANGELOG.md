@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [v0.1.9] - 2026-03-15
+
+### Added
+- `aegis setup` now configures approval notifications interactively
+  - Select notification channel: Feishu/Lark, Generic Webhook, Both, or Skip
+  - Input Feishu and/or generic webhook URLs with validation
+  - Auto-detects local IP for callback base URL default
+  - Step only appears when tools have `approval_required` policies
+- 5 new tests: approval config generation, dynamic URL hot reload, local IP detection
+
+### Fixed
+- Notifier hot reload: webhook URL changes via config reload now take effect without restarting Aegis
+  - Notifiers read webhook URL from config manager on each call instead of storing it at startup
+  - Starting with no webhook configured and adding one later via config reload now works correctly
+
 ## [v0.1.8] - 2026-03-14
 
 ### Added
@@ -94,7 +109,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Policy configuration guide (English + Chinese)
 - Bilingual documentation (README.md + README_CN.md)
 
-[Unreleased]: https://github.com/bigmoon-dev/Aegis/compare/v0.1.8...HEAD
+[Unreleased]: https://github.com/bigmoon-dev/Aegis/compare/v0.1.9...HEAD
+[v0.1.9]: https://github.com/bigmoon-dev/Aegis/compare/v0.1.8...v0.1.9
 [v0.1.8]: https://github.com/bigmoon-dev/Aegis/compare/v0.1.7...v0.1.8
 [v0.1.7]: https://github.com/bigmoon-dev/Aegis/compare/v0.1.6...v0.1.7
 [v0.1.6]: https://github.com/bigmoon-dev/Aegis/compare/v0.1.5...v0.1.6

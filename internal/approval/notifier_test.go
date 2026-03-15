@@ -9,12 +9,25 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/bigmoon-dev/aegis/internal/config"
 )
+
+func notifierCfgMgr(feishuURL, genericURL string) *config.Manager {
+	return config.NewManagerFromConfig(&config.Config{
+		Approval: config.ApprovalConfig{
+			Feishu:          config.FeishuConfig{WebhookURL: feishuURL},
+			Generic:         config.GenericWebhookConfig{WebhookURL: genericURL},
+			Timeout:         2 * time.Second,
+			CallbackBaseURL: "http://localhost:18070",
+		},
+	})
+}
 
 // --- FeishuNotifier tests ---
 
 func TestFeishuNotifier_EmptyURL_Skips(t *testing.T) {
-	f := NewFeishuNotifier("")
+	f := NewFeishuNotifier(notifierCfgMgr("", ""))
 	err := f.Notify(&PendingRequest{
 		ID:       "req-1",
 		AgentID:  "agent-a",
@@ -34,7 +47,7 @@ func TestFeishuNotifier_SendsCard(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	f := NewFeishuNotifier(srv.URL)
+	f := NewFeishuNotifier(notifierCfgMgr(srv.URL, ""))
 	err := f.Notify(&PendingRequest{
 		ID:        "req-1",
 		AgentID:   "agent-a",
@@ -77,7 +90,7 @@ func TestFeishuNotifier_TruncatesLongArgs(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	f := NewFeishuNotifier(srv.URL)
+	f := NewFeishuNotifier(notifierCfgMgr(srv.URL, ""))
 	longArgs := strings.Repeat("x", 600)
 	err := f.Notify(&PendingRequest{
 		ID:        "req-1",
@@ -107,7 +120,7 @@ func TestFeishuNotifier_ServerError(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	f := NewFeishuNotifier(srv.URL)
+	f := NewFeishuNotifier(notifierCfgMgr(srv.URL, ""))
 	err := f.Notify(&PendingRequest{
 		ID:       "req-1",
 		AgentID:  "agent-a",
@@ -123,7 +136,7 @@ func TestFeishuNotifier_ServerError(t *testing.T) {
 }
 
 func TestFeishuNotifier_ConnectionError(t *testing.T) {
-	f := NewFeishuNotifier("http://127.0.0.1:1") // nothing listening
+	f := NewFeishuNotifier(notifierCfgMgr("http://127.0.0.1:1", ""))
 	err := f.Notify(&PendingRequest{
 		ID:       "req-1",
 		AgentID:  "agent-a",
@@ -138,7 +151,7 @@ func TestFeishuNotifier_ConnectionError(t *testing.T) {
 // --- GenericWebhookNotifier tests ---
 
 func TestGenericNotifier_EmptyURL_Skips(t *testing.T) {
-	g := NewGenericWebhookNotifier("")
+	g := NewGenericWebhookNotifier(notifierCfgMgr("", ""))
 	err := g.Notify(&PendingRequest{
 		ID:       "req-1",
 		AgentID:  "agent-a",
@@ -160,7 +173,7 @@ func TestGenericNotifier_SendsPayload(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	g := NewGenericWebhookNotifier(srv.URL)
+	g := NewGenericWebhookNotifier(notifierCfgMgr("", srv.URL))
 	err := g.Notify(&PendingRequest{
 		ID:        "req-123",
 		AgentID:   "agent-a",
@@ -211,7 +224,7 @@ func TestGenericNotifier_ServerError(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	g := NewGenericWebhookNotifier(srv.URL)
+	g := NewGenericWebhookNotifier(notifierCfgMgr("", srv.URL))
 	err := g.Notify(&PendingRequest{
 		ID:       "req-1",
 		AgentID:  "agent-a",
@@ -227,7 +240,7 @@ func TestGenericNotifier_ServerError(t *testing.T) {
 }
 
 func TestGenericNotifier_ConnectionError(t *testing.T) {
-	g := NewGenericWebhookNotifier("http://127.0.0.1:1")
+	g := NewGenericWebhookNotifier(notifierCfgMgr("", "http://127.0.0.1:1"))
 	err := g.Notify(&PendingRequest{
 		ID:       "req-1",
 		AgentID:  "agent-a",
@@ -236,6 +249,93 @@ func TestGenericNotifier_ConnectionError(t *testing.T) {
 
 	if err == nil {
 		t.Error("expected error for connection failure")
+	}
+}
+
+// --- Dynamic URL (hot reload) tests ---
+
+func TestFeishuNotifier_DynamicURL(t *testing.T) {
+	callCount := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callCount++
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	// Start with empty URL
+	cfg := &config.Config{
+		Approval: config.ApprovalConfig{
+			Timeout: 2 * time.Second,
+		},
+	}
+	mgr := config.NewManagerFromConfig(cfg)
+	f := NewFeishuNotifier(mgr)
+
+	req := &PendingRequest{ID: "req-1", AgentID: "agent-a", ToolName: "publish"}
+
+	// First call: empty URL, should skip
+	if err := f.Notify(req, "http://localhost:18070", "tok"); err != nil {
+		t.Fatalf("expected nil error for empty URL, got %v", err)
+	}
+	if callCount != 0 {
+		t.Fatalf("expected 0 calls with empty URL, got %d", callCount)
+	}
+
+	// Simulate hot reload: update config with webhook URL
+	cfg.Approval.Feishu.WebhookURL = srv.URL
+	mgr = config.NewManagerFromConfig(cfg)
+	f.cfgMgr = mgr
+
+	// Second call: now has URL, should send
+	if err := f.Notify(req, "http://localhost:18070", "tok"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if callCount != 1 {
+		t.Fatalf("expected 1 call after reload, got %d", callCount)
+	}
+}
+
+func TestGenericNotifier_DynamicURL(t *testing.T) {
+	callCount := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callCount++
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	// Start with empty URL
+	cfg := &config.Config{
+		Approval: config.ApprovalConfig{
+			Timeout: 2 * time.Second,
+		},
+	}
+	mgr := config.NewManagerFromConfig(cfg)
+	g := NewGenericWebhookNotifier(mgr)
+
+	req := &PendingRequest{
+		ID: "req-1", AgentID: "agent-a", ToolName: "publish",
+		CreatedAt: time.Now(),
+	}
+
+	// First call: empty URL, should skip
+	if err := g.Notify(req, "http://localhost:18070", "tok"); err != nil {
+		t.Fatalf("expected nil error for empty URL, got %v", err)
+	}
+	if callCount != 0 {
+		t.Fatalf("expected 0 calls with empty URL, got %d", callCount)
+	}
+
+	// Simulate hot reload: update config with webhook URL
+	cfg.Approval.Generic.WebhookURL = srv.URL
+	mgr = config.NewManagerFromConfig(cfg)
+	g.cfgMgr = mgr
+
+	// Second call: now has URL, should send
+	if err := g.Notify(req, "http://localhost:18070", "tok"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if callCount != 1 {
+		t.Fatalf("expected 1 call after reload, got %d", callCount)
 	}
 }
 

@@ -2,6 +2,7 @@ package setup
 
 import (
 	"fmt"
+	"net"
 	"net/url"
 	"strings"
 
@@ -347,4 +348,138 @@ func inferDefaults(toolName string) ToolPolicy {
 		Name: toolName, RateLimit: "10/1h",
 		Queue: true, QueueDelay: "5s-15s", Approval: false, Deny: false,
 	}
+}
+
+// ApprovalNotificationInput holds the user's approval notification configuration.
+type ApprovalNotificationInput struct {
+	FeishuWebhookURL  string
+	GenericWebhookURL string
+	CallbackBaseURL   string
+}
+
+// PromptApprovalNotification asks how approval requests should be delivered.
+func PromptApprovalNotification() (ApprovalNotificationInput, error) {
+	var result ApprovalNotificationInput
+
+	var channel string
+	err := huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("How should approval requests be delivered?").
+				Options(
+					huh.NewOption("Feishu / Lark", "feishu"),
+					huh.NewOption("Slack / Discord / Generic Webhook", "generic"),
+					huh.NewOption("Both (Feishu + Generic)", "both"),
+					huh.NewOption("Skip (approve via Management API only)", "skip"),
+				).
+				Value(&channel),
+		),
+	).Run()
+	if err != nil {
+		return result, err
+	}
+
+	if channel == "skip" {
+		return result, nil
+	}
+
+	needFeishu := channel == "feishu" || channel == "both"
+	needGeneric := channel == "generic" || channel == "both"
+
+	var fields []huh.Field
+
+	if needFeishu {
+		fields = append(fields,
+			huh.NewInput().
+				Title("Feishu Webhook URL").
+				Description("群设置 → 群机器人 → 添加自定义机器人 → 复制 Webhook 地址").
+				Placeholder("https://open.feishu.cn/open-apis/bot/v2/hook/...").
+				Value(&result.FeishuWebhookURL).
+				Validate(func(s string) error {
+					if s == "" {
+						return fmt.Errorf("webhook URL is required")
+					}
+					u, err := url.Parse(s)
+					if err != nil || u.Scheme == "" || u.Host == "" {
+						return fmt.Errorf("invalid URL format")
+					}
+					return nil
+				}),
+		)
+	}
+
+	if needGeneric {
+		fields = append(fields,
+			huh.NewInput().
+				Title("Generic Webhook URL").
+				Description("POST JSON payload to this URL when approval is needed").
+				Placeholder("https://hooks.slack.com/services/...").
+				Value(&result.GenericWebhookURL).
+				Validate(func(s string) error {
+					if s == "" {
+						return fmt.Errorf("webhook URL is required")
+					}
+					u, err := url.Parse(s)
+					if err != nil || u.Scheme == "" || u.Host == "" {
+						return fmt.Errorf("invalid URL format")
+					}
+					return nil
+				}),
+		)
+	}
+
+	defaultCallback := fmt.Sprintf("http://%s:18070", detectLocalIP())
+	result.CallbackBaseURL = defaultCallback
+
+	fields = append(fields,
+		huh.NewInput().
+			Title("Callback Base URL").
+			Description("Approval buttons redirect here — ensure your device can reach it").
+			Placeholder(defaultCallback).
+			Value(&result.CallbackBaseURL),
+	)
+
+	err = huh.NewForm(huh.NewGroup(fields...)).Run()
+	if err != nil {
+		return result, err
+	}
+
+	if result.CallbackBaseURL == "" {
+		result.CallbackBaseURL = defaultCallback
+	}
+
+	return result, nil
+}
+
+// detectLocalIP returns the first non-loopback IPv4 address, or "127.0.0.1" as fallback.
+func detectLocalIP() string {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return "127.0.0.1"
+	}
+	for _, iface := range ifaces {
+		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+			if ip == nil || ip.IsLoopback() {
+				continue
+			}
+			if ip.To4() != nil {
+				return ip.String()
+			}
+		}
+	}
+	return "127.0.0.1"
 }

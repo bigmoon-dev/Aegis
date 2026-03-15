@@ -7,25 +7,29 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/bigmoon-dev/aegis/internal/config"
 )
 
 // GenericWebhookNotifier sends a standard JSON POST to any webhook URL.
 type GenericWebhookNotifier struct {
-	webhookURL string
-	client     *http.Client
+	cfgMgr *config.Manager
+	client *http.Client
 }
 
 // NewGenericWebhookNotifier creates a notifier that POSTs JSON to any webhook URL.
-func NewGenericWebhookNotifier(webhookURL string) *GenericWebhookNotifier {
+// The webhook URL is read from config on each Notify call, supporting hot reload.
+func NewGenericWebhookNotifier(cfgMgr *config.Manager) *GenericWebhookNotifier {
 	return &GenericWebhookNotifier{
-		webhookURL: webhookURL,
-		client:     &http.Client{Timeout: 10 * time.Second},
+		cfgMgr: cfgMgr,
+		client: &http.Client{Timeout: 10 * time.Second},
 	}
 }
 
 // Notify sends an approval request payload to the generic webhook endpoint.
 func (g *GenericWebhookNotifier) Notify(req *PendingRequest, callbackBaseURL string, token string) error {
-	if g.webhookURL == "" {
+	webhookURL := g.cfgMgr.Get().Approval.Generic.WebhookURL
+	if webhookURL == "" {
 		log.Printf("[generic] webhook URL not configured, skipping notification")
 		return nil
 	}
@@ -49,7 +53,7 @@ func (g *GenericWebhookNotifier) Notify(req *PendingRequest, callbackBaseURL str
 		return fmt.Errorf("marshal generic webhook payload: %w", err)
 	}
 
-	resp, err := g.client.Post(g.webhookURL, "application/json", bytes.NewReader(body))
+	resp, err := g.client.Post(webhookURL, "application/json", bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("send generic webhook: %w", err)
 	}

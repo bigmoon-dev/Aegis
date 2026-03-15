@@ -172,14 +172,14 @@ func TestConfigAlreadyExistsOverwrite(t *testing.T) {
 	agent := AgentChoice{Adapter: &CustomAdapter{}, AgentID: "test-agent"}
 
 	// Write first time
-	if err := GenerateConfig(backend, policies, agent, outputPath); err != nil {
+	if err := GenerateConfig(backend, policies, agent, ApprovalNotificationInput{}, outputPath); err != nil {
 		t.Fatalf("first write: %v", err)
 	}
 	data1, _ := os.ReadFile(outputPath)
 
 	// Write again (overwrite with different rate limit)
 	policies[0].RateLimit = "20/1h"
-	if err := GenerateConfig(backend, policies, agent, outputPath); err != nil {
+	if err := GenerateConfig(backend, policies, agent, ApprovalNotificationInput{}, outputPath); err != nil {
 		t.Fatalf("overwrite: %v", err)
 	}
 	data2, _ := os.ReadFile(outputPath)

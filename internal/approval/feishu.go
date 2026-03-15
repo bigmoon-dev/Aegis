@@ -7,25 +7,29 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/bigmoon-dev/aegis/internal/config"
 )
 
 // FeishuNotifier sends interactive card messages to Feishu via webhook.
 type FeishuNotifier struct {
-	webhookURL string
-	client     *http.Client
+	cfgMgr *config.Manager
+	client *http.Client
 }
 
 // NewFeishuNotifier creates a notifier that sends interactive cards to Feishu.
-func NewFeishuNotifier(webhookURL string) *FeishuNotifier {
+// The webhook URL is read from config on each Notify call, supporting hot reload.
+func NewFeishuNotifier(cfgMgr *config.Manager) *FeishuNotifier {
 	return &FeishuNotifier{
-		webhookURL: webhookURL,
-		client:     &http.Client{Timeout: 10 * time.Second},
+		cfgMgr: cfgMgr,
+		client: &http.Client{Timeout: 10 * time.Second},
 	}
 }
 
 // Notify sends an approval request card to Feishu with approve/reject buttons.
 func (f *FeishuNotifier) Notify(req *PendingRequest, callbackBaseURL string, token string) error {
-	if f.webhookURL == "" {
+	webhookURL := f.cfgMgr.Get().Approval.Feishu.WebhookURL
+	if webhookURL == "" {
 		log.Printf("[feishu] webhook URL not configured, skipping notification")
 		return nil
 	}
@@ -111,7 +115,7 @@ func (f *FeishuNotifier) Notify(req *PendingRequest, callbackBaseURL string, tok
 		return fmt.Errorf("marshal feishu card: %w", err)
 	}
 
-	resp, err := f.client.Post(f.webhookURL, "application/json", bytes.NewReader(body))
+	resp, err := f.client.Post(webhookURL, "application/json", bytes.NewReader(body))
 	if err != nil {
 		return fmt.Errorf("send feishu webhook: %w", err)
 	}

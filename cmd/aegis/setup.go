@@ -43,6 +43,18 @@ func runSetup() error {
 		return fmt.Errorf("agent config: %w", err)
 	}
 
+	// Step 4: Approval notification (only if any tool has approval_required)
+	var approvalNotif setup.ApprovalNotificationInput
+	if hasApprovalTools(policies) {
+		fmt.Println()
+		fmt.Println("  ── Approval Notifications ────────────────")
+		fmt.Println()
+		approvalNotif, err = setup.PromptApprovalNotification()
+		if err != nil {
+			return fmt.Errorf("approval notification config: %w", err)
+		}
+	}
+
 	// Determine output path
 	outputPath := "config/aegis.yaml"
 	if _, err := os.Stat(outputPath); err == nil {
@@ -88,6 +100,16 @@ func runSetup() error {
 	fmt.Printf("  Backend:  %s → %s (%d tools)\n", backend.Name, backend.URL, len(tools))
 	fmt.Printf("  Agent:    %s (%s)\n", agent.AgentID, agent.Adapter.Name())
 
+	if approvalNotif.FeishuWebhookURL != "" {
+		fmt.Printf("  Feishu:   %s\n", approvalNotif.FeishuWebhookURL)
+	}
+	if approvalNotif.GenericWebhookURL != "" {
+		fmt.Printf("  Webhook:  %s\n", approvalNotif.GenericWebhookURL)
+	}
+	if approvalNotif.CallbackBaseURL != "" {
+		fmt.Printf("  Callback: %s\n", approvalNotif.CallbackBaseURL)
+	}
+
 	if agent.Adapter.ConfigPath() != "" {
 		fmt.Printf("  Inject:   %s\n", agent.Adapter.ConfigPath())
 		fmt.Printf("            + \"%s\" → %s\n", backend.Name, aegisURL)
@@ -128,7 +150,7 @@ func runSetup() error {
 	}
 
 	// Write Aegis config
-	if err := setup.GenerateConfig(*backend, policies, *agent, outputPath); err != nil {
+	if err := setup.GenerateConfig(*backend, policies, *agent, approvalNotif, outputPath); err != nil {
 		return fmt.Errorf("generate config: %w", err)
 	}
 	fmt.Printf("  ✓ Written: %s\n", outputPath)
@@ -212,4 +234,14 @@ func forceInject(agent *setup.AgentChoice, serverName, aegisURL string) error {
 	}
 
 	return agent.Adapter.Inject(serverName, aegisURL)
+}
+
+// hasApprovalTools returns true if any tool policy requires human approval.
+func hasApprovalTools(policies []setup.ToolPolicy) bool {
+	for _, p := range policies {
+		if p.Approval {
+			return true
+		}
+	}
+	return false
 }

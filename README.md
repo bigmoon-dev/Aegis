@@ -133,6 +133,7 @@ The wizard walks you through:
 1. **Backend URL** — enter your MCP server address, Aegis connects and discovers available tools
 2. **Per-tool policies** — smart defaults based on tool names (read-only tools get unlimited access, write/publish tools get rate limits + approval, dangerous tools get denied)
 3. **Agent config** — auto-detects installed agents and injects the Aegis proxy URL into their config
+4. **Approval notifications** — configure Feishu/Lark or generic webhook URLs for approval request delivery (only when tools require approval). Auto-detects your local IP for callback URLs
 
 Supported agents:
 

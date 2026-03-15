@@ -19,9 +19,10 @@ func GenerateConfig(
 	backend BackendInput,
 	policies []ToolPolicy,
 	agent AgentChoice,
+	approvalNotif ApprovalNotificationInput,
 	outputPath string,
 ) error {
-	cfg := buildConfig(backend, policies, agent)
+	cfg := buildConfig(backend, policies, agent, approvalNotif)
 
 	data, err := yaml.Marshal(cfg)
 	if err != nil {
@@ -40,7 +41,7 @@ func GenerateConfig(
 	return nil
 }
 
-func buildConfig(backend BackendInput, policies []ToolPolicy, agent AgentChoice) *config.Config {
+func buildConfig(backend BackendInput, policies []ToolPolicy, agent AgentChoice, approvalNotif ApprovalNotificationInput) *config.Config {
 	cfg := &config.Config{
 		Server: config.ServerConfig{
 			Listen:       ":18070",
@@ -53,10 +54,13 @@ func buildConfig(backend BackendInput, policies []ToolPolicy, agent AgentChoice)
 				Timeout: 120 * time.Second,
 			},
 		},
-		Queue:    map[string]config.QueueConfig{},
-		Agents:   map[string]config.AgentConfig{},
+		Queue:  map[string]config.QueueConfig{},
+		Agents: map[string]config.AgentConfig{},
 		Approval: config.ApprovalConfig{
-			Timeout: 600 * time.Second,
+			Feishu:          config.FeishuConfig{WebhookURL: approvalNotif.FeishuWebhookURL},
+			Generic:         config.GenericWebhookConfig{WebhookURL: approvalNotif.GenericWebhookURL},
+			Timeout:         600 * time.Second,
+			CallbackBaseURL: approvalNotif.CallbackBaseURL,
 		},
 		Audit: config.AuditConfig{
 			DBPath:        "./data/audit.db",

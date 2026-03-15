@@ -69,7 +69,11 @@ func TestIntegrationGenerateAndLoadConfig(t *testing.T) {
 	outputPath := filepath.Join(dir, "aegis.yaml")
 
 	// Generate config
-	if err := GenerateConfig(backend, policies, agent, outputPath); err != nil {
+	approvalNotif := ApprovalNotificationInput{
+		FeishuWebhookURL: "https://open.feishu.cn/open-apis/bot/v2/hook/test",
+		CallbackBaseURL:  "http://192.168.1.100:18070",
+	}
+	if err := GenerateConfig(backend, policies, agent, approvalNotif, outputPath); err != nil {
 		t.Fatalf("GenerateConfig: %v", err)
 	}
 
@@ -152,6 +156,14 @@ func TestIntegrationGenerateAndLoadConfig(t *testing.T) {
 		}
 	} else {
 		t.Error("missing global rate limit for search_papers")
+	}
+
+	// Verify approval config
+	if cfg.Approval.Feishu.WebhookURL != "https://open.feishu.cn/open-apis/bot/v2/hook/test" {
+		t.Errorf("approval feishu URL = %q, want test webhook URL", cfg.Approval.Feishu.WebhookURL)
+	}
+	if cfg.Approval.CallbackBaseURL != "http://192.168.1.100:18070" {
+		t.Errorf("callback base URL = %q, want http://192.168.1.100:18070", cfg.Approval.CallbackBaseURL)
 	}
 
 	t.Logf("Generated config loaded successfully: %d backends, %d agents", len(cfg.Backends), len(cfg.Agents))
