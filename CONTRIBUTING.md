@@ -52,4 +52,4 @@ Please open an issue on [GitHub Issues](https://github.com/bigmoon-dev/Aegis/iss
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the [AGPL-3.0](LICENSE) license.
+By contributing, you agree that your contributions will be licensed under the [Apache 2.0](LICENSE) license.

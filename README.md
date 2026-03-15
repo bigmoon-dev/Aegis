@@ -3,7 +3,7 @@
 [![CI](https://github.com/bigmoon-dev/Aegis/actions/workflows/ci.yml/badge.svg)](https://github.com/bigmoon-dev/Aegis/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/badge/coverage-90.7%25-brightgreen)](docs/testing.md)
 [![Go Report Card](https://goreportcard.com/badge/github.com/bigmoon-dev/aegis)](https://goreportcard.com/report/github.com/bigmoon-dev/aegis)
-[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 **The MCP governance proxy that turns soft rules into hard constraints.**
 
@@ -341,7 +341,7 @@ Tests use temporary SQLite databases and in-memory configs — no external depen
 
 ## License
 
-[AGPL-3.0](LICENSE)
+[Apache 2.0](LICENSE)
 
 ## Acknowledgements
 

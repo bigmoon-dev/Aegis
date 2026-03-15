@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- License changed from AGPL-3.0 to Apache 2.0 for enterprise adoption friendliness
+
 ## [v0.1.9] - 2026-03-15
 
 ### Added
