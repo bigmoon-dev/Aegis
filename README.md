@@ -36,6 +36,10 @@ Aegis MCP sits between your AI agents and MCP tool servers as a protocol-level p
 └────────────────────────────────┘
 ```
 
+<p align="center">
+  <img src="docs/demo-preview.svg" alt="Aegis MCP Demo — ACL filtering, rate limiting, human approval, audit logging" width="820">
+</p>
+
 ## Why an MCP Proxy?
 
 AI agents are powerful but unreliable rule followers. Prompt-based "soft rules" like "don't post more than once per day" are routinely violated. When agents operate on real accounts — social media, e-commerce, customer service — a single burst of unchecked actions can trigger platform bans, compliance violations, or worse.
