@@ -108,16 +108,23 @@ make build
 
 ## 快速开始
 
-```bash
-# 初始化配置
-make init-config
-# 编辑 config/aegis.yaml 填入你的配置
+2 分钟体验 Aegis：
 
-# 运行
-./aegis config/aegis.yaml
+```bash
+npx aegis-mcp-proxy demo
 ```
 
-将 MCP 客户端指向 `http://localhost:18070/agents/{agent-id}/mcp`，替代直接连接后端。
+跟随终端打印的 curl 示例，体验 ACL 过滤、限流、人工审批和审计日志。
+
+准备接入自己的 MCP 服务器？选择你的 Agent：
+
+| 指南 | Agent | 耗时 |
+|------|-------|------|
+| [Claude Code 接入指南](docs/guide-claude-code_cn.md) | Claude Code (Anthropic) | 5 分钟 |
+| [OpenClaw 接入指南](docs/guide-openclaw_cn.md) | OpenClaw | 10 分钟 |
+| [通用 Agent 接入指南](docs/guide-generic_cn.md) | 任何 MCP 兼容 Agent | 5 分钟 |
+
+> **English**: [Claude Code](docs/guide-claude-code.md) · [OpenClaw](docs/guide-openclaw.md) · [Generic Agent](docs/guide-generic.md)
 
 ### 交互式配置向导（推荐新用户使用）
 

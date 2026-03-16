@@ -106,18 +106,25 @@ make build
 ./aegis config/aegis.yaml
 ```
 
-## Quick Start
+## Quickstart
+
+Experience Aegis in 2 minutes:
 
 ```bash
-# Initialize config from example
-make init-config
-# Edit config/aegis.yaml with your settings
-
-# Run
-./aegis config/aegis.yaml
+npx aegis-mcp-proxy demo
 ```
 
-Point your MCP client to `http://localhost:18070/agents/{agent-id}/mcp` instead of the backend directly.
+Follow the on-screen curl examples to see ACL filtering, rate limiting, human approval, and audit logging in action.
+
+Ready to connect your own MCP server? Pick your agent:
+
+| Guide | Agent | Time |
+|-------|-------|------|
+| [Claude Code Guide](docs/guide-claude-code.md) | Claude Code (Anthropic) | 5 min |
+| [OpenClaw Guide](docs/guide-openclaw.md) | OpenClaw | 10 min |
+| [Generic Agent Guide](docs/guide-generic.md) | Any MCP-compatible agent | 5 min |
+
+> **中文版**: [Claude Code](docs/guide-claude-code_cn.md) · [OpenClaw](docs/guide-openclaw_cn.md) · [通用 Agent](docs/guide-generic_cn.md)
 
 ### Interactive Setup (Recommended for New Users)
 
