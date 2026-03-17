@@ -40,6 +40,7 @@ type QueueConfig struct {
 // AgentConfig defines per-agent access rules.
 type AgentConfig struct {
 	DisplayName string                        `yaml:"display_name"`
+	AuthToken   string                        `yaml:"auth_token"`
 	Backends    map[string]AgentBackendConfig `yaml:"backends"`
 }
 

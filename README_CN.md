@@ -220,6 +220,7 @@ queue:
 agents:
   production-agent:
     display_name: "Production Agent"
+    auth_token: "your-secret-token-here"  # 可选：要求 Bearer token 认证
     backends:
       my-tools:
         allowed: true
@@ -339,6 +340,7 @@ CGO_ENABLED=1 go test -cover ./internal/...
 
 ## 安全
 
+- **Agent 端点认证**：在配置中为每个 agent 设置 `auth_token`，`/agents/{agentID}/mcp` 端点将要求 `Authorization: Bearer <token>`。token 长度至少 16 字符。未设置 `auth_token` 的 agent 保持开放（适合本地/演示使用）。**生产环境务必设置。**
 - **管理 API 认证**：在配置中设置 `server.api_token`，所有 `/api/v1/` 端点将要求 `Authorization: Bearer <token>`。未设置时，任何能访问端口的人都可以批准操作、查看审计日志和重载配置。**生产环境务必设置。**
 - **审批回调保护**：每个请求使用 HMAC-SHA256 签名 token（启动时随机生成 32 字节密钥），使用常量时间比较验证。
 - **请求大小限制**：入站请求 1 MB，后端响应 10 MB。

@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"crypto/subtle"
 	"encoding/json"
 	"io"
 	"log"
@@ -53,6 +54,16 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if agentID == "" {
 		http.Error(w, "invalid path: expected /agents/{agentID}/mcp", http.StatusBadRequest)
 		return
+	}
+
+	// Authenticate agent if auth_token is configured
+	cfg := h.cfgMgr.Get()
+	if ac, ok := cfg.Agents[agentID]; ok && ac.AuthToken != "" {
+		token := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+		if token == "" || subtle.ConstantTimeCompare([]byte(token), []byte(ac.AuthToken)) != 1 {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
 	}
 
 	if r.Method == http.MethodGet {

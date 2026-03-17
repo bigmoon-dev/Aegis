@@ -164,6 +164,64 @@ func TestValidate_AgentUnknownBackend(t *testing.T) {
 	}
 }
 
+func TestValidate_AgentAuthTokenTooShort(t *testing.T) {
+	cfg := &Config{
+		Backends: map[string]BackendConfig{
+			"demo": {URL: "http://localhost:9100/mcp"},
+		},
+		Agents: map[string]AgentConfig{
+			"agent-a": {
+				DisplayName: "Agent A",
+				AuthToken:   "short",
+				Backends:    map[string]AgentBackendConfig{"demo": {Allowed: true}},
+			},
+		},
+	}
+
+	err := validate(cfg)
+	if err == nil {
+		t.Error("expected error for auth_token shorter than 16 characters")
+	}
+}
+
+func TestValidate_AgentAuthTokenValid(t *testing.T) {
+	cfg := &Config{
+		Backends: map[string]BackendConfig{
+			"demo": {URL: "http://localhost:9100/mcp"},
+		},
+		Agents: map[string]AgentConfig{
+			"agent-a": {
+				DisplayName: "Agent A",
+				AuthToken:   "valid-token-at-least-16",
+				Backends:    map[string]AgentBackendConfig{"demo": {Allowed: true}},
+			},
+		},
+	}
+
+	if err := validate(cfg); err != nil {
+		t.Errorf("unexpected error for valid auth_token: %v", err)
+	}
+}
+
+func TestValidate_AgentAuthTokenEmpty(t *testing.T) {
+	// Empty auth_token is allowed (no auth enforced)
+	cfg := &Config{
+		Backends: map[string]BackendConfig{
+			"demo": {URL: "http://localhost:9100/mcp"},
+		},
+		Agents: map[string]AgentConfig{
+			"agent-a": {
+				DisplayName: "Agent A",
+				Backends:    map[string]AgentBackendConfig{"demo": {Allowed: true}},
+			},
+		},
+	}
+
+	if err := validate(cfg); err != nil {
+		t.Errorf("unexpected error for empty auth_token: %v", err)
+	}
+}
+
 func TestValidate_WriteTimeoutInflation(t *testing.T) {
 	cfg := &Config{
 		Server: ServerConfig{

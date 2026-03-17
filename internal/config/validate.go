@@ -55,6 +55,9 @@ func validate(cfg *Config) error {
 		if ac.DisplayName == "" {
 			return fmt.Errorf("agent %q: display_name is required", agentID)
 		}
+		if ac.AuthToken != "" && len(ac.AuthToken) < 16 {
+			return fmt.Errorf("agent %q: auth_token must be at least 16 characters", agentID)
+		}
 		for backendID := range ac.Backends {
 			if _, ok := cfg.Backends[backendID]; !ok {
 				return fmt.Errorf("agent %q: unknown backend %q", agentID, backendID)

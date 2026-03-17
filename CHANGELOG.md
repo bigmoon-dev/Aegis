@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- Per-agent endpoint authentication: optional `auth_token` field in agent config
+  - Requires `Authorization: Bearer <token>` on `/agents/{agentID}/mcp` when configured
+  - Constant-time token comparison to prevent timing attacks
+  - Validation rejects tokens shorter than 16 characters
+  - Agents without `auth_token` remain open for local/demo use
+
 ### Changed
 - License changed from AGPL-3.0 to Apache 2.0 for enterprise adoption friendliness
 

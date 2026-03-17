@@ -220,6 +220,7 @@ queue:
 agents:
   production-agent:
     display_name: "Production Agent"
+    auth_token: "your-secret-token-here"  # Optional: require Bearer token auth
     backends:
       my-tools:
         allowed: true
@@ -339,6 +340,7 @@ Tests use temporary SQLite databases and in-memory configs — no external depen
 
 ## Security
 
+- **Agent endpoint authentication**: Set `auth_token` per agent in your config to require `Authorization: Bearer <token>` on `/agents/{agentID}/mcp`. Tokens must be at least 16 characters. Agents without `auth_token` remain open (suitable for local/demo use). **Always set this in production.**
 - **Management API authentication**: Set `server.api_token` in your config to require `Authorization: Bearer <token>` on all `/api/v1/` endpoints. Without this, anyone who can reach the port can approve operations, view audit logs, and reload config. **Always set this in production.**
 - **Approval callbacks**: Protected by per-request HMAC-SHA256 tokens (generated from a random 32-byte key at startup). Tokens are validated with constant-time comparison.
 - **Request size limits**: Incoming requests are capped at 1 MB, backend responses at 10 MB.

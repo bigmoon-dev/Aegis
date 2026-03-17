@@ -449,3 +449,124 @@ func TestHandler_ToolsCall_InvalidParams(t *testing.T) {
 		t.Errorf("expected invalid params error, got %+v", resp.Error)
 	}
 }
+
+func TestHandler_Auth_NoTokenConfigured(t *testing.T) {
+	// Agent without auth_token — request should pass through (not get 401)
+	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]any{"jsonrpc": "2.0", "id": 1, "result": map[string]any{}})
+	}))
+	defer backend.Close()
+
+	cfg := testConfig()
+	cfg.Backends["demo"] = config.BackendConfig{URL: backend.URL, Timeout: 5 * time.Second}
+	cfgMgr := config.NewManagerFromConfig(cfg)
+	f := NewForwarder(cfgMgr)
+	h := NewHandler(cfgMgr, f, NewSessionManager(), nil, nil, nil)
+
+	body, _ := json.Marshal(model.Request{
+		JSONRPC: "2.0",
+		ID:      json.RawMessage(`1`),
+		Method:  "initialize",
+	})
+
+	req := httptest.NewRequest("POST", "/agents/agent-a/mcp", bytes.NewReader(body))
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, req)
+
+	if w.Code == http.StatusUnauthorized {
+		t.Error("expected request to pass without auth when no auth_token configured")
+	}
+}
+
+func TestHandler_Auth_MissingHeader(t *testing.T) {
+	cfg := testConfig()
+	cfg.Agents["agent-a"] = config.AgentConfig{
+		DisplayName: "Agent A",
+		AuthToken:   "secret-token-12345678",
+		Backends: map[string]config.AgentBackendConfig{
+			"demo": {Allowed: true},
+		},
+	}
+	cfgMgr := config.NewManagerFromConfig(cfg)
+	h := NewHandler(cfgMgr, nil, NewSessionManager(), nil, nil, nil)
+
+	body, _ := json.Marshal(model.Request{
+		JSONRPC: "2.0",
+		ID:      json.RawMessage(`1`),
+		Method:  "initialize",
+	})
+
+	req := httptest.NewRequest("POST", "/agents/agent-a/mcp", bytes.NewReader(body))
+	// No Authorization header
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, req)
+
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("expected 401 for missing auth header, got %d", w.Code)
+	}
+}
+
+func TestHandler_Auth_WrongToken(t *testing.T) {
+	cfg := testConfig()
+	cfg.Agents["agent-a"] = config.AgentConfig{
+		DisplayName: "Agent A",
+		AuthToken:   "secret-token-12345678",
+		Backends: map[string]config.AgentBackendConfig{
+			"demo": {Allowed: true},
+		},
+	}
+	cfgMgr := config.NewManagerFromConfig(cfg)
+	h := NewHandler(cfgMgr, nil, NewSessionManager(), nil, nil, nil)
+
+	body, _ := json.Marshal(model.Request{
+		JSONRPC: "2.0",
+		ID:      json.RawMessage(`1`),
+		Method:  "initialize",
+	})
+
+	req := httptest.NewRequest("POST", "/agents/agent-a/mcp", bytes.NewReader(body))
+	req.Header.Set("Authorization", "Bearer wrong-token-abcdefgh")
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, req)
+
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("expected 401 for wrong token, got %d", w.Code)
+	}
+}
+
+func TestHandler_Auth_CorrectToken(t *testing.T) {
+	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]any{"jsonrpc": "2.0", "id": 1, "result": map[string]any{}})
+	}))
+	defer backend.Close()
+
+	cfg := testConfig()
+	cfg.Backends["demo"] = config.BackendConfig{URL: backend.URL, Timeout: 5 * time.Second}
+	cfg.Agents["agent-a"] = config.AgentConfig{
+		DisplayName: "Agent A",
+		AuthToken:   "secret-token-12345678",
+		Backends: map[string]config.AgentBackendConfig{
+			"demo": {Allowed: true},
+		},
+	}
+	cfgMgr := config.NewManagerFromConfig(cfg)
+	f := NewForwarder(cfgMgr)
+	h := NewHandler(cfgMgr, f, NewSessionManager(), nil, nil, nil)
+
+	body, _ := json.Marshal(model.Request{
+		JSONRPC: "2.0",
+		ID:      json.RawMessage(`1`),
+		Method:  "initialize",
+	})
+
+	req := httptest.NewRequest("POST", "/agents/agent-a/mcp", bytes.NewReader(body))
+	req.Header.Set("Authorization", "Bearer secret-token-12345678")
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, req)
+
+	if w.Code == http.StatusUnauthorized {
+		t.Error("expected request to pass with correct auth token")
+	}
+}
