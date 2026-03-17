@@ -59,8 +59,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Authenticate agent if auth_token is configured
 	cfg := h.cfgMgr.Get()
 	if ac, ok := cfg.Agents[agentID]; ok && ac.AuthToken != "" {
-		token := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
-		if token == "" || subtle.ConstantTimeCompare([]byte(token), []byte(ac.AuthToken)) != 1 {
+		auth := r.Header.Get("Authorization")
+		const prefix = "Bearer "
+		if !strings.HasPrefix(auth, prefix) ||
+			subtle.ConstantTimeCompare([]byte(auth[len(prefix):]), []byte(ac.AuthToken)) != 1 {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}

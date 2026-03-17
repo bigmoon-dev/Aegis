@@ -535,6 +535,34 @@ func TestHandler_Auth_WrongToken(t *testing.T) {
 	}
 }
 
+func TestHandler_Auth_NoBearerPrefix(t *testing.T) {
+	cfg := testConfig()
+	cfg.Agents["agent-a"] = config.AgentConfig{
+		DisplayName: "Agent A",
+		AuthToken:   "secret-token-12345678",
+		Backends: map[string]config.AgentBackendConfig{
+			"demo": {Allowed: true},
+		},
+	}
+	cfgMgr := config.NewManagerFromConfig(cfg)
+	h := NewHandler(cfgMgr, nil, NewSessionManager(), nil, nil, nil)
+
+	body, _ := json.Marshal(model.Request{
+		JSONRPC: "2.0",
+		ID:      json.RawMessage(`1`),
+		Method:  "initialize",
+	})
+
+	req := httptest.NewRequest("POST", "/agents/agent-a/mcp", bytes.NewReader(body))
+	req.Header.Set("Authorization", "secret-token-12345678") // no "Bearer " prefix
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, req)
+
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("expected 401 for token without Bearer prefix, got %d", w.Code)
+	}
+}
+
 func TestHandler_Auth_CorrectToken(t *testing.T) {
 	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
