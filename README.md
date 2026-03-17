@@ -1,7 +1,7 @@
 # Aegis MCP
 
 [![CI](https://github.com/bigmoon-dev/Aegis/actions/workflows/ci.yml/badge.svg)](https://github.com/bigmoon-dev/Aegis/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-90.7%25-brightgreen)](docs/testing.md)
+[![Coverage](https://img.shields.io/badge/coverage-77.7%25-yellowgreen)](docs/testing.md)
 [![Go Report Card](https://goreportcard.com/badge/github.com/bigmoon-dev/aegis)](https://goreportcard.com/report/github.com/bigmoon-dev/aegis)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
@@ -64,7 +64,7 @@ Unlike SDK-based approaches that require code changes in each agent, Aegis MCP w
 
 - **Hot Reload** — Update config without restart via `POST /api/v1/config/reload`.
 
-- **Single Binary** — Written in Go with only 3 dependencies (SQLite, YAML, UUID). Runs on a Raspberry Pi.
+- **Single Binary** — Written in Go with only 5 direct dependencies. Runs on a Raspberry Pi.
 
 ## Installation
 

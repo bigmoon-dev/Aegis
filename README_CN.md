@@ -1,7 +1,7 @@
 # Aegis MCP
 
 [![CI](https://github.com/bigmoon-dev/Aegis/actions/workflows/ci.yml/badge.svg)](https://github.com/bigmoon-dev/Aegis/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-90.7%25-brightgreen)](docs/testing.md)
+[![Coverage](https://img.shields.io/badge/coverage-77.7%25-yellowgreen)](docs/testing.md)
 [![Go Report Card](https://goreportcard.com/badge/github.com/bigmoon-dev/aegis)](https://goreportcard.com/report/github.com/bigmoon-dev/aegis)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
@@ -64,7 +64,7 @@ Aegis MCP 将软规则转化为 **MCP 协议层的程序化硬约束**。无论 
 
 - **热更新** — 通过 `POST /api/v1/config/reload` 更新配置，无需重启服务。
 
-- **单二进制部署** — Go 编写，仅 3 个依赖（SQLite、YAML、UUID），可在树莓派上运行。
+- **单二进制部署** — Go 编写，仅 5 个直接依赖，可在树莓派上运行。
 
 ## 安装
 
